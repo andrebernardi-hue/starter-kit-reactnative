@@ -22,7 +22,7 @@ export function Chip({ label, selected = false, onPress, variant = 'default', si
         styles.base,
         isSmall && styles.sm,
         styles[variant],
-        selected && styles[`${variant}Selected` as keyof typeof styles],
+        selected && (styles[`${variant}Selected` as keyof typeof styles] as ViewStyle),
         style,
       ]}
       accessibilityRole="button"

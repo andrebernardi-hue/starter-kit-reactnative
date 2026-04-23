@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Toolkit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=Newsreader:opsz,wght@6..72,500&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+
+    /* ── Reset ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Canvas Infrastructure ──────────────────────────── */
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #DDDDD8; }
+
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 48px;
+      background: var(--color-near-black);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 20px;
+      z-index: 100;
+      user-select: none;
+    }
+    #nav .logo {
+      font-family: var(--font-highlight);
+      font-size: 15px;
+      font-weight: var(--font-weight-medium);
+      color: var(--color-primary-extra-light);
+      margin-right: 20px;
+      white-space: nowrap;
+    }
+    #nav button {
+      background: transparent;
+      border: none;
+      color: var(--color-neutral-low-extra-light);
+      font-family: var(--font-base);
+      font-size: 12px;
+      font-weight: var(--font-weight-medium);
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    #nav button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    #nav .sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); margin: 0 4px; }
+    #nav .hint {
+      margin-left: auto;
+      font-family: var(--font-base);
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    #viewport {
+      position: fixed;
+      inset: 0;
+      top: 48px;
+      overflow: hidden;
+      cursor: grab;
+    }
+    #viewport.dragging { cursor: grabbing; }
+
+    #canvas {
+      position: absolute;
+      top: 0; left: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 32px;
+      padding: 48px 60px 80px;
+      will-change: transform;
+      transform-origin: 0 0;
+    }
+
+    /* ── Board ──────────────────────────────────────────── */
+    .board {
+      background: var(--color-bg);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+      flex-shrink: 0;
+    }
+    .board-title {
+      font-family: var(--font-base);
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: var(--letter-spacing-md);
+      text-transform: uppercase;
+      color: var(--color-fg4);
+      margin-bottom: 28px;
+    }
+    .section-label {
+      font-family: var(--font-base);
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: var(--letter-spacing-sm);
+      text-transform: uppercase;
+      color: var(--color-neutral-low-extra-light);
+      margin: 24px 0 12px;
+    }
+    .section-label:first-of-type { margin-top: 0; }
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--color-border-subtle);
+      margin: 28px 0;
+    }
+
+    /* ── Color Swatches ─────────────────────────────────── */
+    .swatch-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .swatch-color {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .swatch-color.sm {
+      width: 40px;
+      height: 40px;
+    }
+    .swatch-name {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-fg4);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .swatch-hex {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--color-neutral-low-extra-light);
+      text-align: center;
+    }
+    .category-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .cat-label {
+      font-family: var(--font-base);
+      font-size: 12px;
+      color: var(--color-fg3);
+      width: 56px;
+    }
+    .cat-swatch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 28px;
+      border-radius: var(--radius-xs);
+      font-family: var(--font-base);
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* ── Typography Board ───────────────────────────────── */
+    .type-style-row {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    .type-style-row:last-child { border-bottom: none; }
+    .type-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-neutral-low-extra-light);
+      min-width: 80px;
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+    .font-specimen {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    .font-specimen:last-child { border-bottom: none; }
+    .font-family-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-fg4);
+      margin-bottom: 6px;
+    }
+    .size-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .size-bar {
+      height: 4px;
+      background: var(--color-primary-medium);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .size-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-fg4);
+      min-width: 36px;
+    }
+    .size-value {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-neutral-low-extra-light);
+    }
+
+    /* ── Spacing Board ──────────────────────────────────── */
+    .spacing-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .spacing-bar {
+      height: 8px;
+      background: var(--color-primary-medium);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .spacing-name {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-fg3);
+      min-width: 40px;
+    }
+    .spacing-val {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-neutral-low-extra-light);
+    }
+    .radius-grid {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .radius-box {
+      width: 56px;
+      height: 56px;
+      background: var(--color-primary-light);
+      border: 2px solid var(--color-primary-medium);
+    }
+    .radius-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-fg4);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .border-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .border-line {
+      width: 80px;
+      background: var(--color-primary-pure);
+      flex-shrink: 0;
+    }
+
+    /* ── Shadow Board ───────────────────────────────────── */
+    .shadow-card {
+      width: 200px;
+      height: 100px;
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-fg4);
+      gap: 4px;
+    }
+    .shadow-card .shadow-name {
+      font-weight: var(--font-weight-bold);
+      color: var(--color-fg2);
+      font-size: 12px;
+    }
+
+    /* ── Component Board ────────────────────────────────── */
+
+    /* Button */
+    .ds-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-base);
+      font-weight: var(--font-weight-bold);
+      border-radius: var(--radius-md);
+      transition: opacity 0.15s;
+      height: var(--button-height-lg);
+      padding: 0 var(--button-padding-lg);
+      font-size: var(--font-size-xs);
+    }
+    .ds-btn.sm {
+      height: var(--button-height-sm);
+      padding: 0 var(--button-padding-sm);
+      font-size: var(--font-size-xxs);
+      border-radius: var(--radius-sm);
+    }
+    .ds-btn.primary   { background: var(--color-primary-pure); color: var(--color-fg-on-primary); box-shadow: var(--shadow-level2); }
+    .ds-btn.outline   { background: var(--color-bg); color: var(--color-primary-pure); border: 1.5px solid var(--color-primary-pure); }
+    .ds-btn.danger    { background: var(--color-bg); color: var(--color-error-medium); border: 1.5px solid var(--color-error-medium); }
+    .ds-btn.text      { background: transparent; color: var(--color-primary-pure); }
+    .ds-btn:hover     { opacity: 0.82; }
+    .ds-btn:disabled  { opacity: 0.4; cursor: not-allowed; }
+
+    /* Input */
+    .ds-input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .ds-label {
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-fg2);
+    }
+    .ds-input {
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      color: var(--color-fg1);
+      background: var(--color-bg);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .ds-input:focus {
+      border-color: var(--color-primary-pure);
+      box-shadow: 0 0 0 3px rgba(21,139,124,0.15);
+    }
+    .ds-input::placeholder { color: var(--color-fg4); }
+    .ds-input.error { border-color: var(--color-error-medium); }
+
+    /* Chip */
+    .ds-chip {
+      display: inline-flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 var(--spacing-xxxs);
+      border-radius: var(--radius-full);
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      font-weight: var(--font-weight-bold);
+      background: var(--color-bg-muted);
+      color: var(--color-fg2);
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .ds-chip.sm { height: 28px; padding: 0 var(--spacing-nano); }
+    .ds-chip.selected { background: var(--color-primary-light); color: var(--color-primary-pure); }
+    .ds-chip.selected.primary { background: var(--color-primary-pure); color: var(--color-fg-on-primary); }
+    .ds-chip.filter { border: 1px solid var(--color-border); }
+    .ds-chip.filter.selected { background: var(--color-primary-light); border-color: var(--color-primary-pure); color: var(--color-primary-pure); }
+
+    /* Badge */
+    .ds-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: var(--radius-xs);
+      font-family: var(--font-base);
+      font-size: 12px;
+      font-weight: var(--font-weight-bold);
+    }
+    .ds-badge.default  { background: var(--color-bg-muted); color: var(--color-fg3); }
+    .ds-badge.primary  { background: var(--color-primary-light); color: var(--color-primary-dark); }
+    .ds-badge.success  { background: var(--color-success-light); color: var(--color-success-dark); }
+    .ds-badge.warning  { background: var(--color-warning-light); color: var(--color-warning-dark); }
+    .ds-badge.error    { background: var(--color-error-light); color: var(--color-error-dark); }
+    .ds-badge.highlight { background: var(--color-highlight-light); color: var(--color-highlight-dark); }
+
+    /* Card */
+    .ds-card {
+      background: var(--color-bg);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xxs);
+      margin-bottom: 16px;
+    }
+    .ds-card.e0 { border: 1px solid var(--color-border); }
+    .ds-card.e1 { box-shadow: var(--shadow-level1); }
+    .ds-card.e2 { box-shadow: var(--shadow-level2); }
+    .ds-card-title {
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-fg2);
+      margin-bottom: 4px;
+    }
+    .ds-card-body {
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      color: var(--color-fg3);
+      line-height: 1.5;
+    }
+
+    /* Toggle */
+    .ds-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .ds-toggle {
+      position: relative;
+      width: 44px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .ds-toggle input { opacity: 0; width: 0; height: 0; }
+    .ds-track {
+      position: absolute;
+      inset: 0;
+      background: var(--color-neutral-high-medium);
+      border-radius: var(--radius-full);
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .ds-track::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .ds-toggle input:checked + .ds-track { background: var(--color-primary-pure); }
+    .ds-toggle input:checked + .ds-track::after { transform: translateX(18px); }
+    .ds-toggle-label {
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      color: var(--color-fg2);
+    }
+
+    /* Checkbox */
+    .ds-checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .ds-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-xs);
+      border: 1.5px solid var(--color-border-strong);
+      background: var(--color-bg);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .ds-checkbox.checked {
+      background: var(--color-primary-pure);
+      border-color: var(--color-primary-pure);
+    }
+    .ds-checkbox.checked::after {
+      content: '';
+      width: 10px; height: 6px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+    .ds-checkbox-label {
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      color: var(--color-fg2);
+    }
+
+    /* Radio */
+    .ds-radio-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .ds-radio {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid var(--color-border-strong);
+      background: var(--color-bg);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .ds-radio.selected {
+      border-color: var(--color-primary-pure);
+    }
+    .ds-radio.selected::after {
+      content: '';
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--color-primary-pure);
+    }
+
+    /* TopBar */
+    .ds-topbar {
+      width: 100%;
+      height: 56px;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    .ds-topbar-title {
+      font-family: var(--font-highlight);
+      font-weight: var(--font-weight-medium);
+      font-size: 30px;
+      line-height: 33px;
+      letter-spacing: -0.3px;
+      color: var(--color-fg1);
+      flex: 1;
+    }
+
+    /* Tabs */
+    .ds-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 16px;
+    }
+    .ds-tab {
+      padding: 10px 16px;
+      font-family: var(--font-base);
+      font-size: var(--font-size-xxs);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-fg4);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+    }
+    .ds-tab.active { color: var(--color-primary-pure); border-bottom-color: var(--color-primary-pure); }
+
+    /* Toast */
+    .ds-toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-level2);
+      max-width: 280px;
+    }
+    .ds-toast-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .ds-toast-body { font-family: var(--font-base); font-size: var(--font-size-xxs); line-height: 1.4; }
+    .ds-toast-title { font-weight: var(--font-weight-bold); color: var(--color-fg1); margin-bottom: 2px; }
+    .ds-toast-msg   { color: var(--color-fg3); }
+    .ds-toast.success { background: var(--color-bg); border-left: 3px solid var(--color-success-medium); }
+    .ds-toast.success .ds-toast-dot { background: var(--color-success-medium); }
+    .ds-toast.error   { background: var(--color-bg); border-left: 3px solid var(--color-error-medium); }
+    .ds-toast.error   .ds-toast-dot { background: var(--color-error-medium); }
+    .ds-toast.warning { background: var(--color-bg); border-left: 3px solid var(--color-warning-medium); }
+    .ds-toast.warning .ds-toast-dot { background: var(--color-warning-medium); }
+    .ds-toast.info    { background: var(--color-bg); border-left: 3px solid var(--color-highlight-medium); }
+    .ds-toast.info    .ds-toast-dot { background: var(--color-highlight-medium); }
+
+    /* Component rows layout */
+    .comp-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .comp-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav id="nav">
+  <span class="logo">Design System</span>
+  <button data-jump="board-colors">Colors</button>
+  <button data-jump="board-type">Typography</button>
+  <button data-jump="board-spacing">Spacing</button>
+  <button data-jump="board-shadows">Elevation</button>
+  <button data-jump="board-components">Components</button>
+  <span class="hint">Drag to pan · Scroll to zoom</span>
+</nav>
+
+<!-- ── Canvas ─────────────────────────────────────────────── -->
+<div id="viewport">
+<div id="canvas">
+
+
+<!-- ════════════════════════════════════════════════════════
+     BOARD 1: Colors
+════════════════════════════════════════════════════════ -->
+<div class="board" id="board-colors" style="width:520px">
+  <div class="board-title">Color Palette</div>
+
+  <div class="section-label">Primary</div>
+  <div class="swatch-row">
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-primary-pure)"></div><div class="swatch-name">pure</div><div class="swatch-hex">#158B7C</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-primary-extra-light)"></div><div class="swatch-name">extraLight</div><div class="swatch-hex">#19B39F</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-primary-medium)"></div><div class="swatch-name">medium</div><div class="swatch-hex">#B1E8E1</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-primary-light)"></div><div class="swatch-name">light</div><div class="swatch-hex">#E6EFEE</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-primary-dark)"></div><div class="swatch-name">dark</div><div class="swatch-hex">#0D423D</div></div>
+  </div>
+
+  <div class="section-label">Secondary</div>
+  <div class="swatch-row">
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-secondary-dark)"></div><div class="swatch-name">dark</div><div class="swatch-hex">#1F6E62</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-secondary-medium)"></div><div class="swatch-name">medium</div><div class="swatch-hex">#5ABBAE</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-secondary-light)"></div><div class="swatch-name">light</div><div class="swatch-hex">#8CD7CD</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:var(--color-secondary-extra-light)"></div><div class="swatch-name">extraLight</div><div class="swatch-hex">#D7EFEB</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Semantic</div>
+  <div class="swatch-row" style="margin-bottom:10px">
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-highlight-dark)"></div><div class="swatch-name">hlt·dark</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-highlight-medium)"></div><div class="swatch-name">hlt·med</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-highlight-light)"></div><div class="swatch-name">hlt·light</div></div>
+    <div style="width:8px"></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-success-dark)"></div><div class="swatch-name">suc·dark</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-success-medium)"></div><div class="swatch-name">suc·med</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-success-light)"></div><div class="swatch-name">suc·light</div></div>
+  </div>
+  <div class="swatch-row">
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-warning-dark)"></div><div class="swatch-name">wrn·dark</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-warning-medium)"></div><div class="swatch-name">wrn·med</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-warning-light)"></div><div class="swatch-name">wrn·light</div></div>
+    <div style="width:8px"></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-error-dark)"></div><div class="swatch-name">err·dark</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-error-medium)"></div><div class="swatch-name">err·med</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-error-light)"></div><div class="swatch-name">err·light</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Neutral Scale</div>
+  <div class="swatch-row">
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-low-dark)"></div><div class="swatch-name">lowDark</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-low-medium)"></div><div class="swatch-name">lowMed</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-low-light)"></div><div class="swatch-name">lowLight</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-low-extra-light)"></div><div class="swatch-name">lowXLight</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-high-medium)"></div><div class="swatch-name">highMed</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-high-light)"></div><div class="swatch-name">highLight</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-high-extra-light)"></div><div class="swatch-name">highXLight</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-neutral-high-pure); border:1px solid #eee"></div><div class="swatch-name">highPure</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">UI Surface & Text</div>
+  <div class="swatch-row" style="flex-wrap:wrap; gap:6px">
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-bg); border:1px solid #eee"></div><div class="swatch-name">bg</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-bg-subtle)"></div><div class="swatch-name">bgSubtle</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-bg-muted)"></div><div class="swatch-name">bgMuted</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-fg1)"></div><div class="swatch-name">fg1</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-fg2)"></div><div class="swatch-name">fg2</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-fg3)"></div><div class="swatch-name">fg3</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-fg4)"></div><div class="swatch-name">fg4</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-focus-ring)"></div><div class="swatch-name">focusRing</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-link)"></div><div class="swatch-name">link</div></div>
+    <div class="swatch"><div class="swatch-color sm" style="background:var(--color-border)"></div><div class="swatch-name">border</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Categories</div>
+  <div class="category-row"><span class="cat-label">Freezer</span><div class="cat-swatch" style="background:var(--color-cat-freezer-tint);color:var(--color-cat-freezer-ink)">Freezer</div></div>
+  <div class="category-row"><span class="cat-label">Fridge</span><div class="cat-swatch" style="background:var(--color-cat-fridge-tint);color:var(--color-cat-fridge-ink)">Fridge</div></div>
+  <div class="category-row"><span class="cat-label">Produce</span><div class="cat-swatch" style="background:var(--color-cat-produce-tint);color:var(--color-cat-produce-ink)">Produce</div></div>
+  <div class="category-row"><span class="cat-label">Dry</span><div class="cat-swatch" style="background:var(--color-cat-dry-tint);color:var(--color-cat-dry-ink)">Dry goods</div></div>
+  <div class="category-row"><span class="cat-label">Canned</span><div class="cat-swatch" style="background:var(--color-cat-canned-tint);color:var(--color-cat-canned-ink)">Canned</div></div>
+  <div class="category-row"><span class="cat-label">Spices</span><div class="cat-swatch" style="background:var(--color-cat-spices-tint);color:var(--color-cat-spices-ink)">Spices</div></div>
+  <div class="category-row"><span class="cat-label">Oils</span><div class="cat-swatch" style="background:var(--color-cat-oils-tint);color:var(--color-cat-oils-ink)">Oils</div></div>
+  <div class="category-row"><span class="cat-label">Bakery</span><div class="cat-swatch" style="background:var(--color-cat-bakery-tint);color:var(--color-cat-bakery-ink)">Bakery</div></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BOARD 2: Typography
+════════════════════════════════════════════════════════ -->
+<div class="board" id="board-type" style="width:660px">
+  <div class="board-title">Typography</div>
+
+  <div class="section-label">Font Families</div>
+  <div class="font-specimen">
+    <div class="font-family-label">base — DM Sans</div>
+    <div style="font-family:var(--font-base);font-size:28px;font-weight:400;color:var(--color-fg1);line-height:1.2">The quick brown fox</div>
+    <div style="font-family:var(--font-base);font-size:14px;color:var(--color-fg3);margin-top:4px">Regular 400 · Medium 600 · Bold 700</div>
+  </div>
+  <div class="font-specimen">
+    <div class="font-family-label">highlight — Newsreader</div>
+    <div style="font-family:var(--font-highlight);font-size:28px;font-weight:500;color:var(--color-fg1);line-height:1.2">The quick brown fox</div>
+    <div style="font-family:var(--font-base);font-size:14px;color:var(--color-fg3);margin-top:4px">Medium 500</div>
+  </div>
+  <div class="font-specimen">
+    <div class="font-family-label">mono — Fira Code</div>
+    <div style="font-family:var(--font-mono);font-size:18px;font-weight:400;color:var(--color-fg1);line-height:1.4">const ds = 'toolkit'</div>
+    <div style="font-family:var(--font-base);font-size:14px;color:var(--color-fg3);margin-top:4px">Regular 400</div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Text Styles</div>
+  <div class="type-style-row">
+    <div class="type-meta">display<br>80px / 1.15<br>Newsreader</div>
+    <div style="font-family:var(--font-highlight);font-size:56px;font-weight:500;color:var(--color-fg1);line-height:1.1;letter-spacing:var(--letter-spacing-sm)">Display</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">h1<br>64px / 1.20<br>Newsreader</div>
+    <div style="font-family:var(--font-highlight);font-size:48px;font-weight:500;color:var(--color-fg1);line-height:1.2;letter-spacing:var(--letter-spacing-xs)">Heading 1</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">h2<br>40px / 1.20<br>Newsreader</div>
+    <div style="font-family:var(--font-highlight);font-size:36px;font-weight:500;color:var(--color-fg1);line-height:1.2;letter-spacing:var(--letter-spacing-sm)">Heading 2</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">h3<br>32px / 1.33<br>DM Sans</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-lg);font-weight:700;color:var(--color-fg1);line-height:1.33">Heading 3</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">h4<br>24px / 1.33<br>DM Sans</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-md);font-weight:700;color:var(--color-fg1);line-height:1.33">Heading 4</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">h5<br>20px / 1.33<br>DM Sans</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-sm);font-weight:700;color:var(--color-fg1);line-height:1.33">Heading 5</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">bodyLg<br>20px / 1.50</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-sm);font-weight:400;color:var(--color-fg2);line-height:1.5">Body large — comfortable reading size for long-form content.</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">body<br>16px / 1.50</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-xs);font-weight:400;color:var(--color-fg2);line-height:1.5">Body — default reading text used across the application.</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">bodySm<br>14px / 1.33</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-xxs);font-weight:400;color:var(--color-fg3);line-height:1.33">Body small — secondary information, captions in context.</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">labelLg<br>16px bold</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-xs);font-weight:700;color:var(--color-fg1);line-height:1.5">Label Large</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">labelSm<br>14px bold</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-xxs);font-weight:700;color:var(--color-fg1);line-height:1.5">Label Small</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">eyebrow<br>20px / Newsreader</div>
+    <div style="font-family:var(--font-highlight);font-size:var(--font-size-sm);font-weight:500;color:var(--color-fg2);letter-spacing:var(--letter-spacing-sm)">Eyebrow Label</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">caption<br>14px / upper</div>
+    <div style="font-family:var(--font-base);font-size:var(--font-size-xxs);font-weight:700;color:var(--color-fg3);letter-spacing:var(--letter-spacing-sm);text-transform:uppercase">Caption Text</div>
+  </div>
+  <div class="type-style-row">
+    <div class="type-meta">topBarTitle<br>30px / −0.3</div>
+    <div style="font-family:var(--font-highlight);font-size:30px;font-weight:500;color:var(--color-fg1);line-height:33px;letter-spacing:-0.3px">My Pantry</div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Font Size Scale</div>
+  <div class="size-bar-row"><span class="size-label">xxs</span><div class="size-bar" style="width:14px"></div><span class="size-value">14px</span></div>
+  <div class="size-bar-row"><span class="size-label">xs</span><div class="size-bar" style="width:16px"></div><span class="size-value">16px</span></div>
+  <div class="size-bar-row"><span class="size-label">sm</span><div class="size-bar" style="width:20px"></div><span class="size-value">20px</span></div>
+  <div class="size-bar-row"><span class="size-label">md</span><div class="size-bar" style="width:24px"></div><span class="size-value">24px</span></div>
+  <div class="size-bar-row"><span class="size-label">lg</span><div class="size-bar" style="width:32px"></div><span class="size-value">32px</span></div>
+  <div class="size-bar-row"><span class="size-label">xl</span><div class="size-bar" style="width:40px"></div><span class="size-value">40px</span></div>
+  <div class="size-bar-row"><span class="size-label">xxl</span><div class="size-bar" style="width:48px"></div><span class="size-value">48px</span></div>
+  <div class="size-bar-row"><span class="size-label">xxxl</span><div class="size-bar" style="width:64px"></div><span class="size-value">64px</span></div>
+  <div class="size-bar-row"><span class="size-label">display</span><div class="size-bar" style="width:80px"></div><span class="size-value">80px</span></div>
+  <div class="size-bar-row"><span class="size-label">giant</span><div class="size-bar" style="width:96px"></div><span class="size-value">96px</span></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BOARD 3: Spacing & Shape
+════════════════════════════════════════════════════════ -->
+<div class="board" id="board-spacing" style="width:380px">
+  <div class="board-title">Spacing &amp; Shape</div>
+
+  <div class="section-label">Spacing Scale</div>
+  <div class="spacing-row"><span class="spacing-name">nano</span><div class="spacing-bar" style="width:8px"></div><span class="spacing-val">8</span></div>
+  <div class="spacing-row"><span class="spacing-name">xxxs</span><div class="spacing-bar" style="width:16px"></div><span class="spacing-val">16</span></div>
+  <div class="spacing-row"><span class="spacing-name">xxs</span><div class="spacing-bar" style="width:24px"></div><span class="spacing-val">24</span></div>
+  <div class="spacing-row"><span class="spacing-name">xs</span><div class="spacing-bar" style="width:32px"></div><span class="spacing-val">32</span></div>
+  <div class="spacing-row"><span class="spacing-name">sm</span><div class="spacing-bar" style="width:40px"></div><span class="spacing-val">40</span></div>
+  <div class="spacing-row"><span class="spacing-name">md</span><div class="spacing-bar" style="width:48px"></div><span class="spacing-val">48</span></div>
+  <div class="spacing-row"><span class="spacing-name">lg</span><div class="spacing-bar" style="width:56px"></div><span class="spacing-val">56</span></div>
+  <div class="spacing-row"><span class="spacing-name">xl</span><div class="spacing-bar" style="width:64px"></div><span class="spacing-val">64</span></div>
+  <div class="spacing-row"><span class="spacing-name">xxl</span><div class="spacing-bar" style="width:80px"></div><span class="spacing-val">80</span></div>
+  <div class="spacing-row"><span class="spacing-name">xxxl</span><div class="spacing-bar" style="width:120px"></div><span class="spacing-val">120</span></div>
+  <div class="spacing-row"><span class="spacing-name">huge</span><div class="spacing-bar" style="width:160px"></div><span class="spacing-val">160</span></div>
+  <div class="spacing-row"><span class="spacing-name">giant</span><div class="spacing-bar" style="width:200px"></div><span class="spacing-val">200</span></div>
+
+  <hr class="divider">
+
+  <div class="section-label">Radius Scale</div>
+  <div class="radius-grid">
+    <div class="radius-item"><div class="radius-box" style="border-radius:var(--radius-xxs)"></div><div class="radius-meta">xxs<br>2px</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:var(--radius-xs)"></div><div class="radius-meta">xs<br>4px</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:var(--radius-sm)"></div><div class="radius-meta">sm<br>8px</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:var(--radius-md)"></div><div class="radius-meta">md<br>16px</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:var(--radius-lg)"></div><div class="radius-meta">lg<br>24px</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:var(--radius-full)"></div><div class="radius-meta">full<br>999px</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Border Width</div>
+  <div class="border-row"><span class="spacing-name">hairline</span><div class="border-line" style="height:1px"></div><span class="spacing-val">1px</span></div>
+  <div class="border-row"><span class="spacing-name">thin</span><div class="border-line" style="height:2px"></div><span class="spacing-val">2px</span></div>
+  <div class="border-row"><span class="spacing-name">thick</span><div class="border-line" style="height:4px"></div><span class="spacing-val">4px</span></div>
+  <div class="border-row"><span class="spacing-name">heavy</span><div class="border-line" style="height:8px"></div><span class="spacing-val">8px</span></div>
+
+  <hr class="divider">
+
+  <div class="section-label">Button Sizes</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="background:var(--color-primary-light);border-radius:var(--radius-md);height:52px;width:140px;display:flex;align-items:center;justify-content:center">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-primary-dark)">52h · 24px pad</span>
+      </div>
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-fg4)">lg</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="background:var(--color-primary-light);border-radius:var(--radius-sm);height:40px;width:110px;display:flex;align-items:center;justify-content:center">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-primary-dark)">40h · 16px pad</span>
+      </div>
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-fg4)">sm</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BOARD 4: Elevation
+════════════════════════════════════════════════════════ -->
+<div class="board" id="board-shadows" style="width:300px">
+  <div class="board-title">Elevation</div>
+
+  <div class="section-label">Shadow Levels</div>
+  <div class="shadow-card" style="box-shadow:var(--shadow-level1);background:var(--color-bg-subtle)">
+    <span class="shadow-name">level 1</span>
+    <span>0 4px 8px · 8% black</span>
+  </div>
+  <div class="shadow-card" style="box-shadow:var(--shadow-level2)">
+    <span class="shadow-name">level 2</span>
+    <span>0 8px 24px · 10% black</span>
+  </div>
+  <div class="shadow-card" style="box-shadow:var(--shadow-level3)">
+    <span class="shadow-name">level 3</span>
+    <span>0 16px 32px · 12% black</span>
+  </div>
+  <div class="shadow-card" style="box-shadow:var(--shadow-level4)">
+    <span class="shadow-name">level 4</span>
+    <span>0 16px 48px · 16% black</span>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Primary Glow</div>
+  <div class="shadow-card" style="box-shadow:var(--shadow-glow);background:var(--color-primary-pure);color:var(--color-fg-on-primary)">
+    <span class="shadow-name" style="color:var(--color-fg-on-primary)">primaryGlow</span>
+    <span style="color:rgba(255,255,255,0.7)">0 10px 24px · 35% primary</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BOARD 5: Components
+════════════════════════════════════════════════════════ -->
+<div class="board" id="board-components" style="width:620px">
+  <div class="board-title">Components</div>
+
+  <!-- TopBar -->
+  <div class="section-label">Top Bar</div>
+  <div class="ds-topbar" style="margin-bottom:24px">
+    <span class="ds-topbar-title">My Pantry</span>
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--color-fg2)"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+  </div>
+
+  <!-- Buttons -->
+  <div class="section-label">Buttons</div>
+  <div class="comp-row" style="margin-bottom:16px">
+    <button class="ds-btn primary">Add Item</button>
+    <button class="ds-btn outline">Edit</button>
+    <button class="ds-btn danger">Delete</button>
+    <button class="ds-btn text">Cancel</button>
+  </div>
+  <div class="comp-row">
+    <button class="ds-btn primary sm">Add</button>
+    <button class="ds-btn outline sm">Edit</button>
+    <button class="ds-btn danger sm">Remove</button>
+    <button class="ds-btn text sm">Cancel</button>
+    <button class="ds-btn primary" disabled>Disabled</button>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Chips -->
+  <div class="section-label">Chips</div>
+  <div class="comp-row">
+    <button class="ds-chip">Default</button>
+    <button class="ds-chip selected">Selected</button>
+    <button class="ds-chip selected primary">Primary</button>
+    <button class="ds-chip filter">Filter</button>
+    <button class="ds-chip filter selected">Active</button>
+  </div>
+  <div class="comp-row" style="margin-top:6px">
+    <button class="ds-chip sm">Small</button>
+    <button class="ds-chip sm selected">Small sel</button>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Badges -->
+  <div class="section-label">Badges</div>
+  <div class="comp-row">
+    <span class="ds-badge default">Default</span>
+    <span class="ds-badge primary">Primary</span>
+    <span class="ds-badge success">Success</span>
+    <span class="ds-badge warning">Warning</span>
+    <span class="ds-badge error">Error</span>
+    <span class="ds-badge highlight">Info</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Input -->
+  <div class="section-label">Input</div>
+  <div style="display:flex;gap:16px">
+    <div style="flex:1">
+      <div class="ds-input-wrap">
+        <label class="ds-label">Item name</label>
+        <input class="ds-input" type="text" placeholder="e.g. Almond milk" value="">
+      </div>
+      <div class="ds-input-wrap">
+        <label class="ds-label">Expiry date</label>
+        <input class="ds-input" type="text" placeholder="dd/mm/yyyy">
+      </div>
+    </div>
+    <div style="flex:1">
+      <div class="ds-input-wrap">
+        <label class="ds-label">Error state</label>
+        <input class="ds-input error" type="text" value="bad input" placeholder="">
+      </div>
+      <div class="ds-input-wrap">
+        <label class="ds-label">Focused</label>
+        <input class="ds-input" type="text" placeholder="Click to focus" style="border-color:var(--color-primary-pure);box-shadow:0 0 0 3px rgba(21,139,124,0.15)">
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Controls -->
+  <div class="section-label">Controls</div>
+  <div style="display:flex;gap:40px">
+    <div>
+      <div style="font-family:var(--font-base);font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--color-neutral-low-extra-light);margin-bottom:10px">Toggle</div>
+      <label class="ds-toggle-wrap"><label class="ds-toggle"><input type="checkbox" checked><span class="ds-track"></span></label><span class="ds-toggle-label">Notifications on</span></label>
+      <label class="ds-toggle-wrap"><label class="ds-toggle"><input type="checkbox"><span class="ds-track"></span></label><span class="ds-toggle-label">Dark mode</span></label>
+      <label class="ds-toggle-wrap"><label class="ds-toggle"><input type="checkbox" checked><span class="ds-track"></span></label><span class="ds-toggle-label">Auto-sync</span></label>
+    </div>
+    <div>
+      <div style="font-family:var(--font-base);font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--color-neutral-low-extra-light);margin-bottom:10px">Checkbox</div>
+      <div class="ds-checkbox-wrap"><div class="ds-checkbox checked"></div><span class="ds-checkbox-label">In stock</span></div>
+      <div class="ds-checkbox-wrap"><div class="ds-checkbox"></div><span class="ds-checkbox-label">Expiring soon</span></div>
+      <div class="ds-checkbox-wrap"><div class="ds-checkbox checked"></div><span class="ds-checkbox-label">Favourites</span></div>
+    </div>
+    <div>
+      <div style="font-family:var(--font-base);font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--color-neutral-low-extra-light);margin-bottom:10px">Radio</div>
+      <div class="ds-radio-wrap"><div class="ds-radio selected"></div><span class="ds-checkbox-label">All items</span></div>
+      <div class="ds-radio-wrap"><div class="ds-radio"></div><span class="ds-checkbox-label">Fridge only</span></div>
+      <div class="ds-radio-wrap"><div class="ds-radio"></div><span class="ds-checkbox-label">Expiring</span></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Tabs -->
+  <div class="section-label">Tabs</div>
+  <div class="ds-tabs">
+    <div class="ds-tab active">All</div>
+    <div class="ds-tab">Fridge</div>
+    <div class="ds-tab">Freezer</div>
+    <div class="ds-tab">Produce</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Cards -->
+  <div class="section-label">Cards</div>
+  <div style="display:flex;gap:16px">
+    <div class="ds-card e0" style="width:175px">
+      <div class="ds-card-title">Elevation 0</div>
+      <div class="ds-card-body">Border only, no shadow. Flat context.</div>
+    </div>
+    <div class="ds-card e1" style="width:175px">
+      <div class="ds-card-title">Elevation 1</div>
+      <div class="ds-card-body">Subtle lift. Cards on light backgrounds.</div>
+    </div>
+    <div class="ds-card e2" style="width:175px">
+      <div class="ds-card-title">Elevation 2</div>
+      <div class="ds-card-body">Clear lift. Modals and floating panels.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Toast -->
+  <div class="section-label">Toast</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div class="ds-toast success">
+      <div class="ds-toast-dot"></div>
+      <div class="ds-toast-body"><div class="ds-toast-title">Item added</div><div class="ds-toast-msg">Almond milk saved to Fridge.</div></div>
+    </div>
+    <div class="ds-toast error">
+      <div class="ds-toast-dot"></div>
+      <div class="ds-toast-body"><div class="ds-toast-title">Sync failed</div><div class="ds-toast-msg">Check your connection and retry.</div></div>
+    </div>
+    <div class="ds-toast warning">
+      <div class="ds-toast-dot"></div>
+      <div class="ds-toast-body"><div class="ds-toast-title">Expiring soon</div><div class="ds-toast-msg">3 items expire within 3 days.</div></div>
+    </div>
+    <div class="ds-toast info">
+      <div class="ds-toast-dot"></div>
+      <div class="ds-toast-body"><div class="ds-toast-title">Tip</div><div class="ds-toast-msg">Long-press an item to edit it.</div></div>
+    </div>
+  </div>
+
+</div>
+
+
+</div><!-- /canvas -->
+</div><!-- /viewport -->
+
+
+<script>
+  const viewport = document.getElementById('viewport');
+  const canvas   = document.getElementById('canvas');
+
+  let dragging = false;
+  let lastX = 0, lastY = 0;
+  let tx = 0, ty = 0;
+  let scale = 1;
+
+  function applyTransform() {
+    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+
+  // ── Drag to pan ──
+  viewport.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    viewport.classList.add('dragging');
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    tx += e.clientX - lastX;
+    ty += e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+    viewport.classList.remove('dragging');
+  });
+
+  // ── Scroll to zoom ──
+  viewport.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.06 : 0.06;
+    const newScale = Math.min(2, Math.max(0.25, scale + delta));
+
+    // zoom toward cursor
+    const rect = viewport.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    tx = cx - (cx - tx) * (newScale / scale);
+    ty = cy - (cy - ty) * (newScale / scale);
+    scale = newScale;
+    applyTransform();
+  }, { passive: false });
+
+  // ── Nav jump buttons ──
+  document.querySelectorAll('[data-jump]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.jump);
+      if (!target) return;
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      scale = 1;
+      tx = vw / 2 - (target.offsetLeft + target.offsetWidth / 2);
+      ty = vh / 2 - (target.offsetTop  + target.offsetHeight / 2);
+      // clamp so board hits near the top-left with some padding
+      tx = -(target.offsetLeft - 60);
+      ty = 0;
+      applyTransform();
+    });
+  });
+
+  // ── Keyboard shortcut: Space resets view ──
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      tx = 0; ty = 0; scale = 1;
+      applyTransform();
+    }
+  });
+</script>
+
+</body>
+</html>

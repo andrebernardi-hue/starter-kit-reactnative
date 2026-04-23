@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     fontSize:          fontSizes.xxs,
     borderWidth:       1.5,
     borderColor:       colors.border,
-    borderRadius:      10,
+    borderRadius:      radius.sm,
   },
   inputFocused: { borderColor: colors.primary.pure },
 });
