@@ -28,3 +28,8 @@ export const borderWidth = {
   thick:    4,
   heavy:    8,
 } as const;
+
+export const buttonSizes = {
+  lg: { height: 52, paddingHorizontal: 24 },
+  sm: { height: 40, paddingHorizontal: 16 },
+} as const;

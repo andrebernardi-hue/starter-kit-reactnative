@@ -1,5 +1,5 @@
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
-import { colors, textStyles, spacing, radius, shadows } from '../../tokens';
+import { colors, textStyles, spacing, radius, shadows, buttonSizes } from '../../tokens';
 
 export type ButtonVariant = 'primary' | 'outline' | 'danger' | 'text';
 export type ButtonSize    = 'lg' | 'sm';
@@ -60,8 +60,8 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    height:            52,
-    paddingHorizontal: spacing.xxs,
+    height:            buttonSizes.lg.height,
+    paddingHorizontal: buttonSizes.lg.paddingHorizontal,
     borderRadius:      radius.md,
     alignItems:        'center',
     justifyContent:    'center',
@@ -69,8 +69,8 @@ const styles = StyleSheet.create({
     gap:               spacing.nano,
   },
   sm: {
-    height:            40,
-    paddingHorizontal: spacing.xxxs,
+    height:            buttonSizes.sm.height,
+    paddingHorizontal: buttonSizes.sm.paddingHorizontal,
     borderRadius:      radius.sm,
   },
   fullWidth: { alignSelf: 'stretch' },
