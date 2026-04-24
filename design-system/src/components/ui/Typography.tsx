@@ -3,8 +3,8 @@ import { textStyles, colors } from '../../tokens';
 
 type Role =
   | 'display' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5'
-  | 'body' | 'bodyLg' | 'bodySm'
-  | 'caption' | 'labelLg' | 'labelSm' | 'eyebrow' | 'topBarTitle';
+  | 'body' | 'bodyLg' | 'bodySm' | 'article'
+  | 'caption' | 'labelLg' | 'labelSm' | 'micro' | 'eyebrow' | 'topBarTitle';
 
 interface Props {
   role?:          Role;
@@ -33,7 +33,9 @@ function defaultColor(role: Role): TextStyle {
   if (['display', 'h1', 'h2', 'h3', 'h4', 'h5', 'topBarTitle'].includes(role)) {
     return { color: colors.fg1 };
   }
-  if (role === 'caption' || role === 'bodySm') return { color: colors.fg3 };
-  if (role === 'eyebrow')                      return { color: colors.primary.pure };
+  if (role === 'article')                       return { color: colors.fg1 };
+  if (role === 'caption' || role === 'bodySm')  return { color: colors.fg3 };
+  if (role === 'micro')                         return { color: colors.fg4 };
+  if (role === 'eyebrow')                       return { color: colors.primary.pure };
   return { color: colors.fg2 };
 }

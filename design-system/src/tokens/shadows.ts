@@ -1,4 +1,7 @@
 import { Platform } from 'react-native';
+import { dsConfig } from './ds.config';
+
+const mul = dsConfig.shadow.intensityMultiplier;
 
 const makeShadow = (
   offsetY: number,
@@ -10,10 +13,10 @@ const makeShadow = (
     ios: {
       shadowColor:   '#000000',
       shadowOffset:  { width: 0, height: offsetY },
-      shadowOpacity: opacity,
+      shadowOpacity: opacity * mul,
       shadowRadius:  radius,
     },
-    android: { elevation },
+    android: { elevation: Math.round(elevation * mul) },
     default: {},
   });
 
@@ -24,13 +27,15 @@ export const shadows = {
   level4: makeShadow(16, 48, 0.16, 20),
 } as const;
 
+const glowColor = dsConfig.color.primaryGlowColor ?? dsConfig.color.primary.pure;
+
 export const primaryGlow = Platform.select({
   ios: {
-    shadowColor:   '#158B7C',
+    shadowColor:   glowColor,
     shadowOffset:  { width: 0, height: 10 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.35 * mul,
     shadowRadius:  24,
   },
-  android: { elevation: 12 },
+  android: { elevation: Math.round(12 * mul) },
   default: {},
 });

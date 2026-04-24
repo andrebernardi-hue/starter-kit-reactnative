@@ -1,37 +1,17 @@
+import { dsConfig } from './ds.config';
+
+const { primary, secondary, semantic } = dsConfig.color;
+
 export const colors = {
-  primary: {
-    pure:       '#158B7C',
-    extraLight: '#19B39F',
-    light:      '#E6EFEE',
-    medium:     '#B1E8E1',
-    dark:       '#0D423D',
-  },
-  secondary: {
-    extraLight: '#D7EFEB',
-    light:      '#8CD7CD',
-    medium:     '#5ABBAE',
-    dark:       '#1F6E62',
-  },
-  highlight: {
-    light:  '#BAE0FE',
-    medium: '#007ADD',
-    dark:   '#004AAC',
-  },
-  success: {
-    light:  '#D9BBFB',
-    medium: '#6AAD59',
-    dark:   '#00512D',
-  },
-  warning: {
-    light:  '#FFC083',
-    medium: '#FF9534',
-    dark:   '#8B4A00',
-  },
-  error: {
-    light:  '#EF96A0',
-    medium: '#CA4A5A',
-    dark:   '#8B2A36',
-  },
+  // ── Config-driven palettes ──────────────────────────────────────────────────
+  primary,
+  secondary,
+  highlight: semantic.highlight,
+  success:   semantic.success,
+  warning:   semantic.warning,
+  error:     semantic.error,
+
+  // ── Static neutral palette (not in config; v1 decision) ─────────────────────
   neutral: {
     lowDark:        '#292929',
     lowMedium:      '#666666',
@@ -43,6 +23,8 @@ export const colors = {
     highPure:       '#FFFFFF',
   },
   nearBlack:    '#071412',
+
+  // ── Static UI aliases ───────────────────────────────────────────────────────
   bg:           '#FFFFFF',
   bgSubtle:     '#F9F9F9',
   bgMuted:      '#F0F0F0',
@@ -54,9 +36,13 @@ export const colors = {
   border:       '#E0E0E0',
   borderSubtle: '#F0F0F0',
   borderStrong: '#A3A3A3',
-  focusRing:    '#19B39F',
-  link:         '#158B7C',
-  linkHover:    '#0D423D',
+
+  // ── Interactive tokens derived from primary ─────────────────────────────────
+  focusRing:    primary.extraLight,
+  link:         primary.pure,
+  linkHover:    primary.dark,
+
+  // ── Domain-specific category palette (static, edit directly) ────────────────
   categories: {
     freezer: { tint: '#E6F0F8', ink: '#1E6BB8' },
     fridge:  { tint: '#E8F5F3', ink: '#158B7C' },

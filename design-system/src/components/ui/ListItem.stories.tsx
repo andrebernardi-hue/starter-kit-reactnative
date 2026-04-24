@@ -37,6 +37,19 @@ export const WithSlots: Story = {
   },
 };
 
+export const WithIcon: Story = {
+  args: {
+    title:    'Chicken breast',
+    subtitle: 'Fridge • Expires in 2 days',
+    icon:     <View style={{ width: 20, height: 20, borderRadius: 4, backgroundColor: colors.primary.pure }} />,
+    showChevron: true,
+  },
+};
+
+export const WithChevron: Story = {
+  args: { title: 'Settings', showChevron: true },
+};
+
 export const List: Story = {
   render: () => (
     <View style={{ width: 360, backgroundColor: colors.bg }}>

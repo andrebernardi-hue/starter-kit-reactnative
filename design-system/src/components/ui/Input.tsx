@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet,
   KeyboardTypeOptions, ViewStyle,
 } from 'react-native';
-import { colors, fontFamilies, fontSizes, radius, borderWidth, spacing } from '../../tokens';
+import { colors, textStyles, fontWeights, letterSpacings, radius, borderWidth, spacing } from '../../tokens';
 
 interface FieldProps {
   label:     string;
@@ -66,21 +66,23 @@ export function Input({
 const styles = StyleSheet.create({
   fieldWrapper: { gap: 6 },
   label: {
-    fontFamily:    fontFamilies.base,
-    fontSize:      12,
-    fontWeight:    '700',
+    // micro slot + bold weight — field labels are bold even at this tiny size
+    ...textStyles.micro,
+    fontWeight:    fontWeights.bold,
+    letterSpacing: letterSpacings.xs,
     color:         colors.fg1,
-    letterSpacing: 0.02,
   },
   required: { color: colors.error.medium },
-  hint:     { fontSize: 11, color: colors.fg3 },
+  hint: {
+    ...textStyles.micro,
+    color: colors.fg3,
+  },
   input: {
+    ...textStyles.body,
     height:            44,
     paddingHorizontal: spacing.xxxs,
     backgroundColor:   colors.bg,
     color:             colors.fg1,
-    fontFamily:        fontFamilies.base,
-    fontSize:          fontSizes.xxs,
     borderWidth:       1.5,
     borderColor:       colors.border,
     borderRadius:      radius.sm,

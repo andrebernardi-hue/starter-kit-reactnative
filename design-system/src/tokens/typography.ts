@@ -1,28 +1,46 @@
+import { dsConfig } from './ds.config';
+
+const { baseFontSize, fontSizeScale } = dsConfig.typography;
+const sz = (scale: number) => Math.round(baseFontSize * scale);
+
+// ─── Font Families ───────────────────────────────────────────────────────────
+// Semantic slots: choose by purpose, not appearance.
 export const fontFamilies = {
-  base:      'DMSans',
-  highlight: 'Newsreader',
-  mono:      'FiraCode',
+  /** UI sans-serif — all headings, buttons, labels, body copy */
+  base:      dsConfig.typography.fontFamilies.base,
+  /** Editorial serif — long-form article body & display hero moments */
+  editorial: dsConfig.typography.fontFamilies.highlight,
+  /** Monospace — code snippets & technical content */
+  mono:      dsConfig.typography.fontFamilies.mono,
+  /** @deprecated use `editorial` */
+  highlight: dsConfig.typography.fontFamilies.highlight,
 } as const;
 
+// ─── Weights ──────────────────────────────────────────────────────────────────
 export const fontWeights = {
   regular: '400' as const,
   medium:  '600' as const,
   bold:    '700' as const,
 };
 
+// ─── Size Scale ───────────────────────────────────────────────────────────────
+// Named sizes derive from `baseFontSize * fontSizeScale[key]`.
+// `micro` is intentionally off-scale — chrome/hint text only.
 export const fontSizes = {
-  xxs:     14,
-  xs:      16,
-  sm:      20,
-  md:      24,
-  lg:      32,
-  xl:      40,
-  xxl:     48,
-  xxxl:    64,
-  display: 80,
-  giant:   96,
+  micro:   11,                     // badge counts, timestamps, status indicators
+  xxs:     sz(fontSizeScale.xxs),  // small labels, captions
+  xs:      sz(fontSizeScale.xs),   // body copy, form inputs
+  sm:      sz(fontSizeScale.sm),   // large body, h5
+  md:      sz(fontSizeScale.md),   // h4
+  lg:      sz(fontSizeScale.lg),   // h3
+  xl:      sz(fontSizeScale.xl),   // h2
+  xxl:     sz(fontSizeScale.xxl),
+  xxxl:    sz(fontSizeScale.xxxl), // h1
+  display: sz(fontSizeScale.display), // hero display
+  giant:   sz(fontSizeScale.giant),
 } as const;
 
+// ─── Line Height Multipliers ──────────────────────────────────────────────────
 export const lineHeights = {
   default: 1.0,
   xs:      1.15,
@@ -33,6 +51,7 @@ export const lineHeights = {
   xxl:     2.00,
 } as const;
 
+// ─── Letter Spacing ───────────────────────────────────────────────────────────
 export const letterSpacings = {
   xs:   0.02,
   sm:   0.04,
@@ -43,27 +62,37 @@ export const letterSpacings = {
   xxxl: 0.64,
 } as const;
 
+// ─── Text Style Slots ─────────────────────────────────────────────────────────
+// These are the only font definitions components should reference directly.
+// Never hardcode fontFamily, fontWeight, or fontSize in a component StyleSheet.
 export const textStyles = {
+
+  // ── Display / Editorial ─────────────────────────────────────────────────────
+  /** Hero moments: Newsreader for maximum editorial drama */
   display: {
-    fontFamily:    fontFamilies.highlight,
+    fontFamily:    fontFamilies.editorial,
     fontWeight:    fontWeights.medium,
     fontSize:      fontSizes.display,
     lineHeight:    fontSizes.display * lineHeights.xs,
     letterSpacing: letterSpacings.sm,
   },
+
+  // ── Headings — DM Sans ───────────────────────────────────────────────────────
+  /** Screen-level titles */
   h1: {
-    fontFamily:    fontFamilies.highlight,
-    fontWeight:    fontWeights.medium,
+    fontFamily:    fontFamilies.base,
+    fontWeight:    fontWeights.bold,
     fontSize:      fontSizes.xxxl,
     lineHeight:    fontSizes.xxxl * lineHeights.sm,
     letterSpacing: letterSpacings.xs,
   },
+  /** Section headings */
   h2: {
-    fontFamily:    fontFamilies.highlight,
-    fontWeight:    fontWeights.medium,
+    fontFamily:    fontFamilies.base,
+    fontWeight:    fontWeights.bold,
     fontSize:      fontSizes.xl,
     lineHeight:    fontSizes.xl * lineHeights.sm,
-    letterSpacing: letterSpacings.sm,
+    letterSpacing: letterSpacings.xs,
   },
   h3: {
     fontFamily:    fontFamilies.base,
@@ -83,6 +112,9 @@ export const textStyles = {
     fontSize:      fontSizes.sm,
     lineHeight:    fontSizes.sm * lineHeights.md,
   },
+
+  // ── Body ─────────────────────────────────────────────────────────────────────
+  /** Standard UI body — forms, descriptions, list items */
   body: {
     fontFamily:  fontFamilies.base,
     fontWeight:  fontWeights.regular,
@@ -101,14 +133,19 @@ export const textStyles = {
     fontSize:    fontSizes.xxs,
     lineHeight:  fontSizes.xxs * lineHeights.md,
   },
-  caption: {
-    fontFamily:    fontFamilies.base,
-    fontWeight:    fontWeights.bold,
-    fontSize:      fontSizes.xxs,
-    lineHeight:    fontSizes.xxs * lineHeights.md,
-    letterSpacing: letterSpacings.sm,
-    textTransform: 'uppercase' as const,
+  /**
+   * Long-form editorial reading — Newsreader at a comfortable reading size.
+   * Use for article bodies, recipe steps, and any sustained prose passage.
+   */
+  article: {
+    fontFamily:  fontFamilies.editorial,
+    fontWeight:  fontWeights.regular,
+    fontSize:    17,
+    lineHeight:  17 * lineHeights.xl,   // ≈ 29 — generous for reading
   },
+
+  // ── Labels ───────────────────────────────────────────────────────────────────
+  /** Interactive labels — buttons, tabs, badges */
   labelLg: {
     fontFamily:  fontFamilies.base,
     fontWeight:  fontWeights.bold,
@@ -121,17 +158,43 @@ export const textStyles = {
     fontSize:    fontSizes.xxs,
     lineHeight:  fontSizes.xxs * lineHeights.lg,
   },
-  eyebrow: {
-    fontFamily:    fontFamilies.highlight,
-    fontWeight:    fontWeights.medium,
-    fontSize:      fontSizes.sm,
-    letterSpacing: letterSpacings.sm,
+  /**
+   * Tiny UI chrome — badge counts, status ticks, timestamps, hint text.
+   * Below the reading scale; use sparingly and never for primary content.
+   */
+  micro: {
+    fontFamily:  fontFamilies.base,
+    fontWeight:  fontWeights.regular,
+    fontSize:    fontSizes.micro,
+    lineHeight:  fontSizes.micro * lineHeights.md,
   },
+
+  // ── Utility ──────────────────────────────────────────────────────────────────
+  /** Overline / section marker — all-caps DM Sans with wide tracking */
+  eyebrow: {
+    fontFamily:    fontFamilies.base,
+    fontWeight:    fontWeights.bold,
+    fontSize:      fontSizes.xxs,
+    letterSpacing: letterSpacings.xl,
+    textTransform: 'uppercase' as const,
+  },
+  caption: {
+    fontFamily:    fontFamilies.base,
+    fontWeight:    fontWeights.bold,
+    fontSize:      fontSizes.xxs,
+    lineHeight:    fontSizes.xxs * lineHeights.md,
+    letterSpacing: letterSpacings.sm,
+    textTransform: 'uppercase' as const,
+  },
+
+  // ── Navigation ───────────────────────────────────────────────────────────────
+  /** Top navigation bar large title (off-scale, tuned for iOS top bar) */
   topBarTitle: {
-    fontFamily:    fontFamilies.highlight,
-    fontWeight:    fontWeights.medium,
+    fontFamily:    fontFamilies.base,
+    fontWeight:    fontWeights.bold,
     fontSize:      30,
     lineHeight:    33,
     letterSpacing: -0.3,
   },
+
 } as const;

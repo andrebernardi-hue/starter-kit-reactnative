@@ -1,25 +1,31 @@
+import { dsConfig } from './ds.config';
+
+const { baseUnit, spacingScale } = dsConfig.spacing;
+const { baseRadius, radiusScale } = dsConfig.radius;
+
 export const spacing = {
-  nano:  8,
-  xxxs:  16,
-  xxs:   24,
-  xs:    32,
-  sm:    40,
-  md:    48,
-  lg:    56,
-  xl:    64,
-  xxl:   80,
-  xxxl:  120,
-  huge:  160,
-  giant: 200,
+  nano:  baseUnit * spacingScale.nano,
+  xxxs:  baseUnit * spacingScale.xxxs,
+  xxs:   baseUnit * spacingScale.xxs,
+  xs:    baseUnit * spacingScale.xs,
+  sm:    baseUnit * spacingScale.sm,
+  md:    baseUnit * spacingScale.md,
+  lg:    baseUnit * spacingScale.lg,
+  xl:    baseUnit * spacingScale.xl,
+  xxl:   baseUnit * spacingScale.xxl,
+  xxxl:  baseUnit * spacingScale.xxxl,
+  huge:  baseUnit * spacingScale.huge,
+  giant: baseUnit * spacingScale.giant,
 } as const;
 
 export const radius = {
-  xxs:  2,
-  xs:   4,
-  sm:   8,
-  md:   16,
-  lg:   24,
-  full: 999,
+  xxs:  Math.round(baseRadius * radiusScale.xxs),
+  xs:   Math.round(baseRadius * radiusScale.xs),
+  sm:   Math.round(baseRadius * radiusScale.sm),
+  md:   Math.round(baseRadius * radiusScale.md),
+  lg:   Math.round(baseRadius * radiusScale.lg),
+  // `full` is always used verbatim — it must stay 999 for pill shapes.
+  full: radiusScale.full,
 } as const;
 
 export const borderWidth = {
@@ -30,6 +36,12 @@ export const borderWidth = {
 } as const;
 
 export const buttonSizes = {
-  lg: { height: 52, paddingHorizontal: 24 },
-  sm: { height: 40, paddingHorizontal: 16 },
+  lg: {
+    height:            dsConfig.button.height.lg,
+    paddingHorizontal: dsConfig.button.paddingHorizontal.lg,
+  },
+  sm: {
+    height:            dsConfig.button.height.sm,
+    paddingHorizontal: dsConfig.button.paddingHorizontal.sm,
+  },
 } as const;

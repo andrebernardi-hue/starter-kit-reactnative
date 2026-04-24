@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { fontFamilies, fontWeights, radius } from '../../tokens';
+import { textStyles, radius } from '../../tokens';
 
 interface Props {
   title?:     string;
@@ -33,10 +33,8 @@ const styles = StyleSheet.create({
   container:    { overflow: 'hidden', flexShrink: 0 },
   titleWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 18 },
   title: {
-    fontFamily:  fontFamilies.highlight,
-    fontWeight:  fontWeights.medium,
-    fontSize:    24,
-    lineHeight:  28,
-    color:       '#FFFFFF',
+    // h4 slot — DM Sans bold, 24/32. White overlay sits on the tinted card.
+    ...textStyles.h4,
+    color: '#FFFFFF',
   },
 });

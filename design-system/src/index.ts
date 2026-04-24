@@ -27,9 +27,17 @@ export { Tabs }         from './components/ui/Tabs';
 export { ListItem }     from './components/ui/ListItem';
 
 // Layout components
-export { TopBar }       from './components/layout/TopBar';
-export { Card }         from './components/layout/Card';
+export { TopBar }        from './components/layout/TopBar';
+export { Card }          from './components/layout/Card';
 export { SectionHeader } from './components/layout/SectionHeader';
 
+// Navigation components
+export { BottomTabBar }  from './components/navigation/BottomTabBar';
+export type { TabItem }  from './components/navigation/BottomTabBar';
+export { AppHeader }     from './components/navigation/AppHeader';
+export type { HeaderAction } from './components/navigation/AppHeader';
+export { ModalSheet, FormSheet } from './components/navigation/NavigatorSheets';
+export { Pagination }    from './components/ui/Pagination';
+
 // Feedback components
-export { RecipeImage }  from './components/feedback/RecipeImage';
+export { RecipeImage }   from './components/feedback/RecipeImage';

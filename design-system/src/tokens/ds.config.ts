@@ -1,16 +1,21 @@
 // ============================================================
-// ds.config.ts — Mirror of all configurable Design System values.
+// ds.config.ts — Single source of truth for every tunable value
+// in the Design System.
 //
-// This file does NOT drive the token files. The token files
-// (colors.ts, spacing.ts, typography.ts, shadows.ts) are the
-// source of truth and hold self-contained hardcoded values.
+// The other token files (colors.ts, spacing.ts, typography.ts,
+// shadows.ts) import `dsConfig` and derive their outputs from it.
+// Changing a value here is the ONLY way to retune the DS without
+// breaking the token API or touching any components.
 //
-// This file exists so Claude (CoWork skill) has a single,
-// structured place to read the current DS state and understand
-// what every value means and how it relates to the system.
+// Scale-based axes (spacing, radius, typography) are expressed as
+// a base unit × a named scale, so a single base change rescales
+// the whole system proportionally. Colors are explicit hex values
+// — no palette generation — because explicit failures are safer
+// than generated ones when Claude edits this file unattended.
 //
-// SYNC RULE: every value here must match its counterpart in the
-// token files at all times. See CLAUDE.md for the full map.
+// Default values below reproduce the previous hardcoded token
+// outputs exactly; an unmodified config must yield zero visual
+// diff from the pre-config era.
 // ============================================================
 
 export interface DSConfig {
@@ -23,34 +28,40 @@ export interface DSConfig {
       warning:   { light: string; medium: string; dark: string }
       error:     { light: string; medium: string; dark: string }
     }
-    primaryGlowColor: string
+    /** Override the drop-shadow glow color; defaults to `primary.pure`. */
+    primaryGlowColor?: string
   }
   typography: {
     fontFamilies: { base: string; highlight: string; mono: string }
-    fontSizes: {
+    /** Body text size in dp. All named sizes are `round(baseFontSize * scale)`. */
+    baseFontSize: number
+    fontSizeScale: {
       xxs: number; xs: number; sm: number; md: number; lg: number
       xl: number; xxl: number; xxxl: number; display: number; giant: number
     }
   }
   spacing: {
-    nano: number; xxxs: number; xxs: number; xs: number; sm: number; md: number
-    lg: number; xl: number; xxl: number; xxxl: number; huge: number; giant: number
+    /** Grid unit in dp. All steps = `baseUnit * scale[key]`. */
+    baseUnit: number
+    spacingScale: {
+      nano: number; xxxs: number; xxs: number; xs: number; sm: number; md: number
+      lg: number; xl: number; xxl: number; xxxl: number; huge: number; giant: number
+    }
   }
   radius: {
-    xxs: number; xs: number; sm: number; md: number; lg: number; full: number
+    /** Base corner radius in dp. All steps = `round(baseRadius * scale[key])`. */
+    baseRadius: number
+    /** NOTE: `full` is always 999 (pill); do not change it. */
+    radiusScale: { xxs: number; xs: number; sm: number; md: number; lg: number; full: number }
   }
   button: {
     paddingHorizontal: { lg: number; sm: number }
+    /** Minimum 44 for WCAG touch target compliance. */
     height:            { lg: number; sm: number }
   }
   shadow: {
-    glow: { color: string; opacity: number }
-    levels: {
-      level1: { offsetY: number; radius: number; opacity: number; elevation: number }
-      level2: { offsetY: number; radius: number; opacity: number; elevation: number }
-      level3: { offsetY: number; radius: number; opacity: number; elevation: number }
-      level4: { offsetY: number; radius: number; opacity: number; elevation: number }
-    }
+    /** 0.0–2.0. Scales all `shadowOpacity` (iOS) and `elevation` (Android). */
+    intensityMultiplier: number
   }
 }
 
@@ -75,47 +86,53 @@ export const dsConfig: DSConfig = {
       warning:   { light: '#FFC083', medium: '#FF9534', dark: '#8B4A00' },
       error:     { light: '#EF96A0', medium: '#CA4A5A', dark: '#8B2A36' },
     },
-    primaryGlowColor: '#158B7C',
   },
 
   typography: {
     fontFamilies: { base: 'DMSans', highlight: 'Newsreader', mono: 'FiraCode' },
-    fontSizes: {
-      xxs:     14,
-      xs:      16,
-      sm:      20,
-      md:      24,
-      lg:      32,
-      xl:      40,
-      xxl:     48,
-      xxxl:    64,
-      display: 80,
-      giant:   96,
+    baseFontSize: 16,
+    fontSizeScale: {
+      xxs:     0.875,
+      xs:      1.0,
+      sm:      1.25,
+      md:      1.5,
+      lg:      2.0,
+      xl:      2.5,
+      xxl:     3.0,
+      xxxl:    4.0,
+      display: 5.0,
+      giant:   6.0,
     },
   },
 
   spacing: {
-    nano:  8,
-    xxxs:  16,
-    xxs:   24,
-    xs:    32,
-    sm:    40,
-    md:    48,
-    lg:    56,
-    xl:    64,
-    xxl:   80,
-    xxxl:  120,
-    huge:  160,
-    giant: 200,
+    baseUnit: 8,
+    spacingScale: {
+      nano:  1,
+      xxxs:  2,
+      xxs:   3,
+      xs:    4,
+      sm:    5,
+      md:    6,
+      lg:    7,
+      xl:    8,
+      xxl:   10,
+      xxxl:  15,
+      huge:  20,
+      giant: 25,
+    },
   },
 
   radius: {
-    xxs:  2,
-    xs:   4,
-    sm:   8,
-    md:   16,
-    lg:   24,
-    full: 999,
+    baseRadius: 4,
+    radiusScale: {
+      xxs:  0.5,
+      xs:   1.0,
+      sm:   2.0,
+      md:   4.0,
+      lg:   6.0,
+      full: 999,
+    },
   },
 
   button: {
@@ -124,12 +141,6 @@ export const dsConfig: DSConfig = {
   },
 
   shadow: {
-    glow: { color: '#158B7C', opacity: 0.35 },
-    levels: {
-      level1: { offsetY: 4,  radius: 8,  opacity: 0.08, elevation: 2  },
-      level2: { offsetY: 8,  radius: 24, opacity: 0.10, elevation: 6  },
-      level3: { offsetY: 16, radius: 32, opacity: 0.12, elevation: 12 },
-      level4: { offsetY: 16, radius: 48, opacity: 0.16, elevation: 20 },
-    },
+    intensityMultiplier: 1.0,
   },
 }
