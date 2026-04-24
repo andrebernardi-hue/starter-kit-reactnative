@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, fontFamilies, fontWeights, radius } from '../../tokens';
+import { colors, textStyles, fontWeights, radius } from '../../tokens';
 import { getExpiryState, daysBetween }               from '../../utils/expiry';
 import { PantryItem }                                 from '../../types/pantry';
 
@@ -37,8 +37,7 @@ const styles = StyleSheet.create({
     alignSelf:         'flex-start',
   },
   label: {
-    fontFamily: fontFamilies.base,
-    fontWeight: fontWeights.bold,
-    fontSize:   11,
+    ...textStyles.micro,
+    fontWeight: fontWeights.bold, // bold — badges demand emphasis at this small size
   },
 });

@@ -1,5 +1,5 @@
 import { Pressable, Text, View, StyleSheet } from 'react-native';
-import { colors, textStyles, spacing, radius, borderWidth } from '../../tokens';
+import { colors, textStyles, fontWeights, spacing, radius, borderWidth } from '../../tokens';
 
 interface Props {
   checked:        boolean;
@@ -47,7 +47,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.pure,
     borderWidth:     0,
   },
-  mark: { color: colors.fgOnPrimary, fontSize: 12, fontWeight: '700', lineHeight: 14 },
+  mark: {
+    // ✓ glyph — micro size, bold, pinned lineHeight for vertical centering in the 20pt box
+    ...textStyles.micro,
+    fontWeight: fontWeights.bold,
+    lineHeight: 14,
+    color:      colors.fgOnPrimary,
+  },
   dash: {
     width:           10,
     height:          2,

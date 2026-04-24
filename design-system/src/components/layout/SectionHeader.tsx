@@ -1,5 +1,5 @@
 import { Text, StyleSheet, ViewStyle, View } from 'react-native';
-import { colors, fontFamilies, fontWeights, spacing } from '../../tokens';
+import { colors, textStyles, spacing } from '../../tokens';
 
 interface Props {
   children: string;
@@ -21,10 +21,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   text: {
-    fontFamily:    fontFamilies.base,
-    fontWeight:    fontWeights.bold,
-    fontSize:      11,
-    color:         colors.fg3,
-    letterSpacing: 0.1,
+    // caption slot — bold micro, uppercase, widely tracked
+    ...textStyles.caption,
+    color: colors.fg3,
   },
 });

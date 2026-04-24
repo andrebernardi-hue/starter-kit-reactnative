@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generic Screens — DS Toolkit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body, #root {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: var(--color-neutral-high-extra-light);
+      font-family: var(--font-family-base);
+      color: var(--fg2);
+    }
+
+    /* ── Toolkit topbar ───────────────────────────────── */
+    .topbar {
+      height: 52px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-xxs);
+      gap: var(--spacing-xxxs);
+      box-shadow: var(--shadow-level1);
+      position: relative;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .topbar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: var(--font-weight-medium);
+      color: var(--color-primary-pure);
+      text-decoration: none;
+    }
+
+    .topbar-back:hover { color: var(--color-primary-dark); }
+
+    .topbar-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+    }
+
+    .topbar-title {
+      font-size: var(--font-size-xxs);
+      font-weight: var(--font-weight-bold);
+      color: var(--fg1);
+    }
+
+    .topbar-hint {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--fg4);
+    }
+
+    .topbar-reset {
+      font-size: 12px;
+      font-weight: var(--font-weight-medium);
+      color: var(--color-primary-pure);
+      background: var(--color-primary-light);
+      border: none;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-family: var(--font-family-base);
+    }
+
+    .topbar-reset:hover { background: var(--color-primary-medium); }
+
+    .app-layout {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .canvas-wrap {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      cursor: grab;
+    }
+
+    .canvas-wrap.dragging { cursor: grabbing; }
+
+    .canvas-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .canvas-content {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--spacing-xxl);
+      padding: var(--spacing-xxl);
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xxxs);
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: var(--letter-spacing-lg);
+      color: var(--fg4);
+      padding-bottom: 4px;
+    }
+
+    .section-phones {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: flex-start;
+    }
+
+    .phone-col {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-nano);
+      align-items: center;
+    }
+
+    .phone-name {
+      font-size: 11px;
+      font-weight: var(--font-weight-medium);
+      color: var(--fg3);
+      text-align: center;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       DS COMPONENT CLASSES
+       Mirror the widgets defined in toolkit/index.html so every
+       screen pulls chrome straight from tokens.css.
+    ═══════════════════════════════════════════════════════════ */
+
+    /* ── App header (large title, iOS style) ────────────── */
+    .ds-phone-header-large {
+      padding: 10px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-nano);
+    }
+    .ds-phone-header-large.bordered {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .ds-phone-header-large .title {
+      font-family: var(--font-family-editorial);
+      font-size: 30px;
+      font-weight: var(--font-weight-medium);
+      letter-spacing: -0.01em;
+      color: var(--fg1);
+      line-height: 1.1;
+    }
+    .ds-phone-header-large .subtitle {
+      font-size: 12px;
+      color: var(--fg3);
+      margin-top: 2px;
+    }
+    .ds-phone-header-large .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ── App header (compact, centered title) ───────────── */
+    .ds-phone-header-compact {
+      padding: 10px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-nano);
+    }
+    .ds-phone-header-compact .title {
+      font-family: var(--font-family-editorial);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--fg1);
+    }
+
+    /* ── Icon buttons (36px squircles) ───────────────────── */
+    .ds-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 0;
+      transition: background var(--duration-fast) var(--ease-standard);
+    }
+    .ds-icon-btn.primary { background: var(--color-primary-light); color: var(--color-primary-pure); }
+    .ds-icon-btn.primary-solid { background: var(--color-primary-pure); color: var(--color-fg-on-primary); }
+    .ds-icon-btn.neutral { background: var(--color-neutral-high-light); color: var(--fg2); }
+    .ds-icon-btn.ghost { background: transparent; color: var(--fg2); }
+
+    /* ── Search bar (pill input) ─────────────────────────── */
+    .ds-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 48px;
+      padding: 0 14px;
+      background: var(--color-neutral-high-light);
+      border-radius: var(--radius-full);
+    }
+    .ds-search-bar input {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      outline: none;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-xxs);
+      color: var(--fg1);
+    }
+    .ds-search-bar input::placeholder { color: var(--fg4); }
+    .ds-search-bar.sm { height: 40px; }
+
+    /* ── List row ────────────────────────────────────────── */
+    .ds-list-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .ds-list-row:last-child { border-bottom: 0; }
+    .ds-list-row .leading {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--color-primary-light);
+      color: var(--color-primary-pure);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ds-list-row .leading.danger {
+      background: var(--color-error-light);
+      color: var(--color-error-dark);
+      opacity: 0.85;
+    }
+    .ds-list-row .body { flex: 1; min-width: 0; }
+    .ds-list-row .title {
+      font-family: var(--font-family-base);
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-xxs);
+      color: var(--fg1);
+    }
+    .ds-list-row .title.danger { color: var(--color-error-dark); }
+    .ds-list-row .subtitle {
+      font-size: 12px;
+      color: var(--fg3);
+      margin-top: 2px;
+    }
+
+    /* ── Group label (above list card) ───────────────────── */
+    .ds-group-label {
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: var(--letter-spacing-md);
+      color: var(--fg4);
+      padding: 0 4px 8px;
+    }
+    .ds-section-title {
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: var(--letter-spacing-md);
+      margin-bottom: 10px;
+    }
+    .ds-section-title.accent { color: var(--color-primary-pure); }
+    .ds-section-title.muted  { color: var(--fg4); }
+
+    /* ── Bottom tab bar (floating pill — matches floating variant) ─ */
+    .ds-bottom-tab-bar {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 24px;
+      background: var(--bg);
+      border-radius: 18px;
+      box-shadow: var(--shadow-level-2);
+      display: flex;
+      padding: 6px;
+      z-index: 5;
+    }
+    .ds-tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-standard);
+    }
+    .ds-tab-item.active {
+      background: var(--color-primary-light);
+      color: var(--color-primary-dark);
+    }
+    .ds-tab-item:not(.active) { color: var(--fg3); }
+    .ds-tab-label {
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+    }
+
+    /* ── Pagination dots ─────────────────────────────────── */
+    .ds-pagination-dots {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+    .ds-page-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-neutral-high-medium);
+      transition: all var(--duration-base) var(--ease-standard);
+    }
+    .ds-page-dot.active {
+      width: 24px;
+      background: var(--color-primary-pure);
+    }
+    .ds-page-dot.seen { background: var(--color-primary-medium); }
+
+    /* ── Floating Action Button ──────────────────────────── */
+    .ds-fab {
+      position: absolute;
+      right: 20px;
+      bottom: 44px;
+      height: var(--button-height-lg);
+      padding: 0 20px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary-pure);
+      color: var(--color-fg-on-primary);
+      border: 0;
+      box-shadow: var(--shadow-level-2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-family-base);
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-xxs);
+      cursor: pointer;
+      z-index: 4;
+    }
+
+    /* ── Segmented control (iOS style) ───────────────────── */
+    .ds-segmented {
+      display: flex;
+      background: var(--color-neutral-high-light);
+      border-radius: var(--radius-full);
+      padding: 3px;
+    }
+    .ds-segmented-item {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      cursor: pointer;
+      color: var(--fg3);
+      transition: all var(--duration-fast) var(--ease-standard);
+    }
+    .ds-segmented-item.active {
+      background: var(--bg);
+      color: var(--color-primary-pure);
+      box-shadow: var(--shadow-level-1);
+    }
+
+    /* ── Pill badge (category tag) ───────────────────────── */
+    .ds-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      font-family: var(--font-family-base);
+    }
+    .ds-badge.primary { background: var(--color-primary-light); color: var(--color-primary-pure); }
+    .ds-badge.dark    { background: var(--color-near-black); color: var(--color-fg-on-primary); opacity: 0.85; }
+
+    /* ── Card ────────────────────────────────────────────── */
+    .ds-card {
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: all var(--duration-base) var(--ease-standard);
+    }
+    .ds-card.elevated {
+      border-color: transparent;
+      box-shadow: var(--shadow-level-2);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect, useCallback } = React;
+
+    /* ═══════════════════════════════════════════════════════════
+       TOKEN HELPERS
+       Helpers so screens can pull token values semantically.
+    ═══════════════════════════════════════════════════════════ */
+    const T = {
+      // font sizes
+      fsMicro: 11, fsCaption: 12, fsFoot: 13,
+      fs: {
+        xxs: 'var(--font-size-xxs)',
+        xs:  'var(--font-size-xs)',
+        sm:  'var(--font-size-sm)',
+        md:  'var(--font-size-md)',
+        lg:  'var(--font-size-lg)',
+      },
+      fw: {
+        regular: 'var(--font-weight-regular)',
+        medium:  'var(--font-weight-medium)',
+        bold:    'var(--font-weight-bold)',
+      },
+      ff: {
+        base:      'var(--font-family-base)',
+        editorial: 'var(--font-family-editorial)',
+        mono:      'var(--font-family-mono)',
+      },
+      r: {
+        xxs:  'var(--radius-xxs)',
+        xs:   'var(--radius-xs)',
+        sm:   'var(--radius-sm)',
+        md:   'var(--radius-md)',
+        lg:   'var(--radius-lg)',
+        full: 'var(--radius-full)',
+      },
+      shadow: {
+        l1: 'var(--shadow-level-1)',
+        l2: 'var(--shadow-level-2)',
+        l3: 'var(--shadow-level-3)',
+        l4: 'var(--shadow-level-4)',
+      },
+      ease: 'var(--ease-standard)',
+      dur: {
+        micro: 'var(--duration-micro)',
+        fast:  'var(--duration-fast)',
+        base:  'var(--duration-base)',
+      },
+    };
+
+    /* ═══════════════════════════════════════════════════════════
+       ICON COMPONENT
+    ═══════════════════════════════════════════════════════════ */
+    const IP = {
+      home:     ['M3 11l9-8 9 8','M5 10v10h14V10'],
+      search:   ['M21 21l-4.3-4.3'], search_circle: [11,11,7],
+      bell:     ['M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9','M13.7 21a2 2 0 01-3.4 0'],
+      user:     ['M4 20c0-4 4-6 8-6s8 2 8 6'], user_circle: [12,8,4],
+      settings: ['M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3h0a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8v0a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z'], settings_circle: [12,12,3],
+      heart:    ['M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z'],
+      plus:     ['M12 5v14M5 12h14'],
+      check:    ['M20 6L9 17l-5-5'],
+      x:        ['M18 6L6 18M6 6l12 12'],
+      arrow_up_right: ['M7 17L17 7M7 7h10v10'],
+      arrow_right: ['M5 12h14M12 5l7 7-7 7'],
+      arrow_left: ['M19 12H5M12 19l-7-7 7-7'],
+      chevron_right: ['M9 6l6 6-6 6'],
+      chevron_down: ['M6 9l6 6 6-6'],
+      mail: ['M22 6l-10 7L2 6'], mail_rect: [2,4,20,16,2],
+      lock: ['M7 11V7a5 5 0 0110 0v4'], lock_rect: [3,11,18,10,2],
+      more: [], more_h: [[5,12,1.5],[12,12,1.5],[19,12,1.5]],
+      send: ['M22 2L11 13','M22 2l-7 20-4-9-9-4 20-7z'],
+      star: ['M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1z'],
+      eye: ['M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'], eye_circle: [12,12,3],
+      filter: ['M22 3H2l8 9.5V19l4 2v-8.5z'],
+      bookmark: ['M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z'],
+      mic: ['M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z','M19 10v2a7 7 0 01-14 0v-2','M12 19v4','M8 23h8'],
+      clock: ['M12 6v6l4 2'], clock_circle: [12,12,10],
+      calendar: ['M8 2v4','M16 2v4','M3 10h18'], calendar_rect: [3,4,18,18,2],
+      message: ['M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'],
+      phone: ['M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.1-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8 9.6a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z'],
+      inbox: ['M22 12h-6l-2 3h-4l-2-3H2','M5.5 5.5L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.5-6.5A2 2 0 0016.8 4H7.2a2 2 0 00-1.7 1.5z'],
+      tag: ['M20.6 13.4L12 22 2 12V2h10l8.6 8.6a2 2 0 010 2.8z'], tag_circle: [7,7,1.5],
+      globe: ['M2 12h20','M12 2a15 15 0 010 20','M12 2a15 15 0 000 20'], globe_circle: [12,12,10],
+      shield: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
+      info: ['M12 16v-4','M12 8h.01'], info_circle: [12,12,10],
+      help: ['M9.1 9a3 3 0 115.8 1c0 2-3 3-3 3','M12 17h.01'], help_circle: [12,12,10],
+      logout: ['M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4','M16 17l5-5-5-5','M21 12H9'],
+      moon: ['M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z'],
+      flame: ['M8.5 14.5A2.5 2.5 0 0011 17c0 1.4-.9 2-2 2-1.5 0-3-1.3-3-3.5 0-4 6-8 6-8s0 4 3 5.5a5.5 5.5 0 01-2 10.5c-1.5 0-4-.5-4-4 0-1.3.7-3 2-4.5z'],
+      utensils: ['M3 2v7c0 1.1.9 2 2 2h2v11','M7 2v20','M21 15V2a5 5 0 00-3 4.5V12c0 1.7 1 3 3 3z'],
+    };
+
+    function Icon({ name, size = 22, color = 'currentColor', stroke = 1.75, style = {} }) {
+      const paths = IP[name] || [];
+      const circle = IP[name + '_circle'];
+      const rect = IP[name + '_rect'];
+      const circles = IP[name + '_h'];
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+             stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>
+          {paths.map((d, i) => <path key={'p'+i} d={d} />)}
+          {circle && <circle cx={circle[0]} cy={circle[1]} r={circle[2]} />}
+          {rect && <rect x={rect[0]} y={rect[1]} width={rect[2]} height={rect[3]} rx={rect[4]} />}
+          {circles && circles.map((c,i) => <circle key={'c'+i} cx={c[0]} cy={c[1]} r={c[2]} fill={color} stroke="none" />)}
+        </svg>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       UI PRIMITIVES — all styling pulled from tokens
+    ═══════════════════════════════════════════════════════════ */
+    function Button({ variant = 'primary', size = 'lg', children, iconLeft, iconRight, onClick, disabled, style = {} }) {
+      const base = {
+        fontFamily: T.ff.base, fontWeight: T.fw.bold,
+        border: 0, borderRadius: T.r.sm, cursor: disabled ? 'not-allowed' : 'pointer',
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        transition: `all ${T.dur.fast} ${T.ease}`,
+        opacity: disabled ? 'var(--opacity-medium)' : 1,
+      };
+      const sizes = {
+        lg: { height: 'var(--button-height-lg)', padding: '0 var(--button-padding-lg)', fontSize: T.fs.xs },
+        sm: { height: 'var(--button-height-sm)', padding: '0 var(--button-padding-sm)', fontSize: T.fs.xxs },
+      };
+      const variants = {
+        primary: { background: 'var(--color-primary-pure)', color: 'var(--color-fg-on-primary)' },
+        outline: { background: 'var(--bg)', color: 'var(--color-primary-pure)', boxShadow: 'inset 0 0 0 1.5px var(--color-primary-pure)' },
+        text:    { background: 'transparent', color: 'var(--color-primary-pure)', padding: '0 var(--spacing-nano)' },
+        danger:  { background: 'var(--color-error-medium)', color: 'var(--color-fg-on-primary)' },
+      };
+      return (
+        <button style={{ ...base, ...sizes[size], ...variants[variant], ...style }} onClick={onClick} disabled={disabled}>
+          {iconLeft && <Icon name={iconLeft} size={size === 'lg' ? 18 : 16} />}
+          {children}
+          {iconRight && <Icon name={iconRight} size={size === 'lg' ? 18 : 16} />}
+        </button>
+      );
+    }
+
+    function TextField({ label, value, onChange, placeholder, help, error, type = 'text', iconLeft, disabled }) {
+      const [focus, setFocus] = useState(false);
+      return (
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
+          {label && <span style={{ fontSize: 12, fontWeight: T.fw.bold, color: 'var(--fg1)' }}>{label}</span>}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, height: 44, padding: '0 12px',
+            background: disabled ? 'var(--color-neutral-high-extra-light)' : 'var(--bg)',
+            border: `1px solid ${error ? 'var(--color-error-medium)' : focus ? 'var(--color-primary-pure)' : 'var(--border)'}`,
+            borderRadius: T.r.sm,
+            boxShadow: focus && !error ? '0 0 0 3px rgba(25,179,159,.24)' : error ? '0 0 0 3px rgba(202,74,90,.18)' : 'none',
+            transition: `all ${T.dur.fast} ${T.ease}`,
+          }}>
+            {iconLeft && <Icon name={iconLeft} size={18} color="var(--fg3)" />}
+            <input type={type} value={value} onChange={e => onChange?.(e.target.value)}
+                   placeholder={placeholder} disabled={disabled}
+                   onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
+                   style={{ flex: 1, border: 0, outline: 'none', background: 'transparent',
+                            fontFamily: T.ff.base, fontSize: T.fs.xxs, color: 'var(--fg1)' }} />
+          </div>
+          {help && <span style={{ fontSize: 11, color: error ? 'var(--color-error-medium)' : 'var(--fg3)' }}>{help}</span>}
+        </label>
+      );
+    }
+
+    function Chip({ children, selected, onClick, onRemove, soft }) {
+      return (
+        <span onClick={onClick} style={{
+          height: 32, padding: onRemove ? '0 8px 0 14px' : '0 14px',
+          borderRadius: T.r.full, fontFamily: T.ff.base,
+          fontSize: 13, fontWeight: T.fw.medium,
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: selected ? 'var(--color-primary-pure)' : soft ? 'var(--color-primary-light)' : 'var(--bg)',
+          color: selected ? 'var(--color-fg-on-primary)' : soft ? 'var(--color-primary-dark)' : 'var(--fg1)',
+          border: `1px solid ${selected ? 'var(--color-primary-pure)' : soft ? 'var(--color-primary-medium)' : 'var(--border)'}`,
+          cursor: 'pointer', transition: `all ${T.dur.fast} ${T.ease}`,
+        }}>
+          {children}
+          {onRemove && <span onClick={e => { e.stopPropagation(); onRemove(); }} style={{ opacity: .7, cursor: 'pointer' }}>×</span>}
+        </span>
+      );
+    }
+
+    function Toggle({ checked, onChange }) {
+      return (
+        <div onClick={() => onChange?.(!checked)} style={{
+          width: 44, height: 24, borderRadius: T.r.full, position: 'relative', cursor: 'pointer',
+          background: checked ? 'var(--color-primary-pure)' : 'var(--color-neutral-high-medium)',
+          transition: `background ${T.dur.fast}`,
+        }}>
+          <div style={{
+            position: 'absolute', top: 2, left: checked ? 22 : 2, width: 20, height: 20,
+            borderRadius: '50%', background: 'var(--bg)',
+            boxShadow: T.shadow.l1, transition: `left ${T.dur.fast}`,
+          }} />
+        </div>
+      );
+    }
+
+    function Checkbox({ checked, onChange }) {
+      return (
+        <span onClick={() => onChange?.(!checked)} style={{
+          width: 20, height: 20, borderRadius: T.r.xs, display: 'inline-flex',
+          alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          border: `1.5px solid ${checked ? 'var(--color-primary-pure)' : 'var(--color-neutral-low-light)'}`,
+          background: checked ? 'var(--color-primary-pure)' : 'var(--bg)',
+        }}>
+          {checked && <Icon name="check" size={14} color="var(--color-fg-on-primary)" stroke={2.5} />}
+        </span>
+      );
+    }
+
+    function Card({ children, elevated, style = {}, onClick, padding = 16 }) {
+      return (
+        <div onClick={onClick} className={`ds-card ${elevated ? 'elevated' : ''}`}
+             style={{ padding, ...style }}>{children}</div>
+      );
+    }
+
+    function Avatar({ initials, size = 36, color = 'var(--color-primary-pure)' }) {
+      return (
+        <div style={{
+          width: size, height: size, borderRadius: '50%', background: color,
+          color: 'var(--color-fg-on-primary)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: T.ff.base, fontWeight: T.fw.bold, fontSize: size * 0.4,
+          flexShrink: 0,
+        }}>{initials}</div>
+      );
+    }
+
+    /* ─── DS COMPOSITE COMPONENTS (mirror index.html toolkit) ─── */
+
+    function AppHeaderLarge({ title, subtitle, actions, bordered }) {
+      return (
+        <div className={`ds-phone-header-large ${bordered ? 'bordered' : ''}`}>
+          <div>
+            <div className="title">{title}</div>
+            {subtitle && <div className="subtitle">{subtitle}</div>}
+          </div>
+          {actions && <div className="actions">{actions}</div>}
+        </div>
+      );
+    }
+
+    function AppHeaderCompact({ leading, title, trailing }) {
+      return (
+        <div className="ds-phone-header-compact">
+          {leading || <div style={{ width: 22 }} />}
+          <div className="title">{title}</div>
+          {trailing || <div style={{ width: 22 }} />}
+        </div>
+      );
+    }
+
+    function IconButton({ variant = 'neutral', icon, size = 18, onClick, style = {} }) {
+      return (
+        <button className={`ds-icon-btn ${variant}`} onClick={onClick} style={style}>
+          <Icon name={icon} size={size} color="currentColor" />
+        </button>
+      );
+    }
+
+    function SearchBar({ placeholder = 'Search', leading = 'search', trailing, value, onChange, size }) {
+      return (
+        <div className={`ds-search-bar ${size === 'sm' ? 'sm' : ''}`}>
+          {leading && <Icon name={leading} size={18} color="var(--fg3)" />}
+          <input placeholder={placeholder} value={value || ''} onChange={e => onChange?.(e.target.value)} />
+          {trailing}
+        </div>
+      );
+    }
+
+    function ListRow({ icon, title, subtitle, right, danger, onClick }) {
+      return (
+        <div className="ds-list-row" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+          {icon && (
+            <div className={`leading ${danger ? 'danger' : ''}`}>
+              <Icon name={icon} size={18} color="currentColor" />
+            </div>
+          )}
+          <div className="body">
+            <div className={`title ${danger ? 'danger' : ''}`}>{title}</div>
+            {subtitle && <div className="subtitle">{subtitle}</div>}
+          </div>
+          {right}
+        </div>
+      );
+    }
+
+    function GroupLabel({ children }) {
+      return <div className="ds-group-label">{children}</div>;
+    }
+
+    function SectionTitle({ tone = 'muted', children }) {
+      return <div className={`ds-section-title ${tone}`}>{children}</div>;
+    }
+
+    function BottomTabBar({ items }) {
+      return (
+        <div className="ds-bottom-tab-bar">
+          {items.map(t => (
+            <div key={t.label} className={`ds-tab-item ${t.active ? 'active' : ''}`} onClick={t.onClick}>
+              <Icon name={t.icon} size={18} color="currentColor" />
+              <span className="ds-tab-label">{t.label}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function FAB({ icon, children, onClick, style = {} }) {
+      return (
+        <button className="ds-fab" onClick={onClick} style={style}>
+          {icon && <Icon name={icon} size={20} color="currentColor" stroke={2.5} />}
+          {children}
+        </button>
+      );
+    }
+
+    function SegmentedControl({ options, value, onChange }) {
+      return (
+        <div className="ds-segmented">
+          {options.map(o => (
+            <div key={o} className={`ds-segmented-item ${value === o ? 'active' : ''}`}
+                 onClick={() => onChange?.(o)}>{o}</div>
+          ))}
+        </div>
+      );
+    }
+
+    function DotsPager({ count, current }) {
+      return (
+        <div className="ds-pagination-dots">
+          {Array.from({ length: count }).map((_, i) => (
+            <div key={i} className={`ds-page-dot ${i === current ? 'active' : i < current ? 'seen' : ''}`} />
+          ))}
+        </div>
+      );
+    }
+
+    function Badge({ children, tone = 'primary', style = {} }) {
+      return <span className={`ds-badge ${tone}`} style={style}>{children}</span>;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       iOS DEVICE FRAME
+    ═══════════════════════════════════════════════════════════ */
+    function IOSStatusBar({ dark = false, time = '9:41' }) {
+      const c = dark ? 'var(--color-fg-on-primary)' : 'var(--color-near-black)';
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'center', padding: '20px 24px 10px',
+          position: 'relative', zIndex: 20, width: '100%',
+        }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: '-apple-system, system-ui', fontWeight: T.fw.medium, fontSize: 15, color: c }}>{time}</span>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <svg width="19" height="12" viewBox="0 0 19 12">
+              <rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill={c}/>
+              <rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill={c}/>
+              <rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill={c}/>
+              <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill={c}/>
+            </svg>
+            <svg width="27" height="13" viewBox="0 0 27 13">
+              <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke={c} strokeOpacity="0.35" fill="none"/>
+              <rect x="2" y="2" width="20" height="9" rx="2" fill={c}/>
+              <path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill={c} fillOpacity="0.4"/>
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    function IOSDevice({ children, width = 393, height = 852, dark = false }) {
+      return (
+        <div style={{
+          width, height, borderRadius: 48, overflow: 'hidden', position: 'relative',
+          background: dark ? 'var(--color-near-black)' : 'var(--bg)',
+          boxShadow: '0 32px 64px rgba(0,0,0,0.20), 0 0 0 1px rgba(0,0,0,0.12)',
+          flexShrink: 0,
+        }}>
+          {/* Dynamic Island */}
+          <div style={{
+            position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+            width: 120, height: 35, borderRadius: 20, background: 'var(--color-near-black)', zIndex: 50,
+          }} />
+          {/* Status bar */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, pointerEvents: 'none' }}>
+            <IOSStatusBar dark={dark} />
+          </div>
+          {/* Screen content */}
+          <div style={{ height: '100%', position: 'relative' }}>
+            {children}
+          </div>
+          {/* Home indicator */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
+            height: 30, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+            paddingBottom: 6, pointerEvents: 'none',
+          }}>
+            <div style={{ width: 120, height: 5, borderRadius: T.r.full,
+                          background: dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.20)' }} />
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 1 — NEWS FEED
+    ═══════════════════════════════════════════════════════════ */
+    function NewsFeedScreen() {
+      const [cat, setCat] = useState('Top');
+      const cats = ['Top', 'World', 'Tech', 'Food', 'Sports'];
+      const featured = {
+        tag: 'Food', mins: 6,
+        title: 'A new wave of plant-forward restaurants is reshaping weeknight dinner',
+        author: 'Clara Weiss', time: '2h ago', color: 'var(--color-primary-medium)',
+      };
+      const articles = [
+        { id: 1, tag: 'Tech',   title: 'Framework-agnostic design tokens land in 8.0',   author: 'Ivan K.',    time: '4h', color: 'var(--color-highlight-light)' },
+        { id: 2, tag: 'World',  title: 'Four capitals sign new transit cooperation pact', author: 'Reuters',    time: '5h', color: 'var(--color-warning-light)' },
+        { id: 3, tag: 'Sports', title: 'Late surge seals playoff berth for the Coastals', author: 'M. Alvarez', time: '7h', color: 'var(--color-success-light)' },
+        { id: 4, tag: 'Food',   title: "The home cook's guide to fermented chili paste",  author: 'Sana R.',    time: '9h', color: 'var(--color-primary-light)' },
+      ];
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <AppHeaderLarge
+            title="Today"
+            bordered
+            actions={<>
+              <IconButton variant="primary" icon="search" />
+              <Avatar initials="AL" size={36} />
+            </>}
+          />
+
+          {/* Category chips */}
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '14px 20px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
+            {cats.map(c => <Chip key={c} selected={c === cat} onClick={() => setCat(c)}>{c}</Chip>)}
+          </div>
+
+          {/* Scroll area */}
+          <div style={{ flex: 1, overflow: 'auto', padding: '16px 20px 100px' }}>
+            <SectionTitle tone="accent">Featured story</SectionTitle>
+            <Card elevated padding={0} style={{ overflow: 'hidden', marginBottom: 20 }}>
+              <div style={{ height: 150, background: featured.color, position: 'relative' }}>
+                <Badge tone="dark" style={{ position: 'absolute', top: 12, left: 12 }}>{featured.tag}</Badge>
+              </div>
+              <div style={{ padding: 16 }}>
+                <div style={{ fontFamily: T.ff.editorial, fontSize: T.fs.sm, fontWeight: T.fw.medium, lineHeight: 1.25, color: 'var(--fg1)', marginBottom: 10 }}>{featured.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Avatar initials="CW" size={24} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: T.fw.bold, color: 'var(--fg1)' }}>{featured.author}</div>
+                      <div style={{ fontSize: 11, color: 'var(--fg4)' }}>{featured.time} · {featured.mins} min read</div>
+                    </div>
+                  </div>
+                  <Icon name="bookmark" size={18} color="var(--fg4)" />
+                </div>
+              </div>
+            </Card>
+
+            <SectionTitle tone="muted">More for you</SectionTitle>
+            {articles.map((a, i) => (
+              <div key={a.id} style={{ display: 'flex', gap: 12, padding: '14px 0', borderBottom: i < articles.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: T.fw.bold, letterSpacing: 'var(--letter-spacing-md)', color: 'var(--color-primary-pure)', marginBottom: 4 }}>{a.tag.toUpperCase()}</div>
+                  <div style={{ fontFamily: T.ff.editorial, fontSize: T.fs.xs, fontWeight: T.fw.medium, lineHeight: 1.3, color: 'var(--fg1)', marginBottom: 8 }}>{a.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--fg4)' }}>
+                    <span>{a.author}</span><span>·</span><span>{a.time}</span>
+                  </div>
+                </div>
+                <div style={{ width: 80, height: 80, borderRadius: T.r.sm, background: a.color, flexShrink: 0 }} />
+              </div>
+            ))}
+          </div>
+
+          {/* Floating tab bar */}
+          <BottomTabBar items={[
+            { icon: 'home',     label: 'Today',    active: true },
+            { icon: 'search',   label: 'Discover' },
+            { icon: 'bookmark', label: 'Saved' },
+            { icon: 'user',     label: 'Profile' },
+          ]}/>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 2 — RECIPE SWIPE
+    ═══════════════════════════════════════════════════════════ */
+    function RecipeSwipeScreen() {
+      const recipes = [
+        { id: 1, title: 'Charred Miso Eggplant',   mins: 35, diff: 'Easy',   cuisine: 'Japanese', color: 'var(--color-primary-dark)',  fg: 'var(--color-fg-on-primary)', tags: ['Vegan', '4 ingredients'] },
+        { id: 2, title: 'Spiced Lamb Flatbreads',  mins: 45, diff: 'Medium', cuisine: 'Lebanese', color: 'var(--color-error-medium)',  fg: 'var(--color-fg-on-primary)', tags: ['High protein'] },
+        { id: 3, title: 'Lemon Ricotta Pasta',     mins: 25, diff: 'Easy',   cuisine: 'Italian',  color: 'var(--color-warning-light)', fg: 'var(--fg2)',                  tags: ['Quick'] },
+      ];
+      const [idx, setIdx] = useState(0);
+      const [drag, setDrag] = useState(0);
+
+      const top = recipes[idx % recipes.length];
+      const next = recipes[(idx + 1) % recipes.length];
+      const rotation = drag / 12;
+      const likeOpacity = Math.max(0, Math.min(1, drag / 80));
+      const nopeOpacity = Math.max(0, Math.min(1, -drag / 80));
+
+      const swipe = (dir) => {
+        setDrag(dir * 400);
+        setTimeout(() => { setIdx(i => i + 1); setDrag(0); }, 220);
+      };
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-subtle)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <AppHeaderCompact
+            leading={<Icon name="user" size={24} color="var(--fg3)" />}
+            title="Discover"
+            trailing={<Icon name="filter" size={22} color="var(--fg3)" />}
+          />
+
+          <div style={{ flex: 1, position: 'relative', padding: '10px 20px' }}>
+            <div style={{
+              position: 'absolute', top: 18, left: 32, right: 32, bottom: 28,
+              borderRadius: T.r.lg, background: next.color, transform: 'scale(0.95)',
+              boxShadow: T.shadow.l1,
+            }} />
+            <div style={{
+              position: 'absolute', top: 10, left: 20, right: 20, bottom: 20,
+              borderRadius: T.r.lg, background: top.color, overflow: 'hidden',
+              transform: `translateX(${drag}px) rotate(${rotation}deg)`,
+              transition: drag === 0 ? 'none' : `transform ${T.dur.base} ${T.ease}`,
+              boxShadow: T.shadow.l3, color: top.fg,
+              display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 22,
+            }}>
+              <div style={{ position: 'absolute', top: 22, left: 22, padding: '6px 14px', border: '3px solid var(--color-success-medium)', borderRadius: T.r.sm, color: 'var(--color-success-medium)', fontWeight: 800, letterSpacing: 'var(--letter-spacing-md)', transform: 'rotate(-12deg)', opacity: likeOpacity, background: 'rgba(255,255,255,0.9)' }}>YUM</div>
+              <div style={{ position: 'absolute', top: 22, right: 22, padding: '6px 14px', border: '3px solid var(--color-error-medium)',   borderRadius: T.r.sm, color: 'var(--color-error-medium)',   fontWeight: 800, letterSpacing: 'var(--letter-spacing-md)', transform: 'rotate(12deg)',  opacity: nopeOpacity, background: 'rgba(255,255,255,0.9)' }}>NOPE</div>
+
+              <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                {top.tags.map(t => (
+                  <span key={t} style={{ padding: '4px 10px', background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: T.r.full, fontSize: 11, fontWeight: T.fw.medium }}>{t}</span>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: T.fw.bold, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-md)', marginBottom: 6 }}>{top.cuisine}</div>
+              <div style={{ fontFamily: T.ff.editorial, fontSize: T.fs.lg, fontWeight: T.fw.medium, lineHeight: 1.1, marginBottom: 14 }}>{top.title}</div>
+              <div style={{ display: 'flex', gap: 18, alignItems: 'center', fontSize: 13, fontWeight: T.fw.medium }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Icon name="clock" size={16} color={top.fg} /> {top.mins} min</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Icon name="flame" size={16} color={top.fg} /> {top.diff}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, paddingBottom: 36 }}>
+            <button onClick={() => swipe(-1)} style={{ width: 56, height: 56, borderRadius: '50%', border: 0, background: 'var(--bg)', boxShadow: T.shadow.l2, color: 'var(--color-error-medium)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="x" size={26} stroke={2.5} />
+            </button>
+            <button style={{ width: 48, height: 48, borderRadius: '50%', border: 0, background: 'var(--bg)', boxShadow: T.shadow.l1, color: 'var(--color-highlight-medium)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="bookmark" size={20} />
+            </button>
+            <button onClick={() => swipe(1)} style={{ width: 56, height: 56, borderRadius: '50%', border: 0, background: 'var(--color-primary-pure)', boxShadow: T.shadow.l2, color: 'var(--color-fg-on-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="heart" size={26} stroke={2.5} />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 3 — SETTINGS
+    ═══════════════════════════════════════════════════════════ */
+    function SettingsScreen2() {
+      const [darkM, setDarkM] = useState(false);
+      const [notif, setNotif] = useState(true);
+      const [units, setUnits] = useState('Metric');
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-subtle)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <AppHeaderLarge title="Settings" />
+
+          <div style={{ flex: 1, overflow: 'auto', padding: '8px 16px 32px' }}>
+            <Card padding={16} style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <Avatar initials="AL" size={52} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: T.fw.bold, fontSize: T.fs.xs, color: 'var(--fg1)' }}>Alex Lin</div>
+                <div style={{ fontSize: 12, color: 'var(--fg3)' }}>alex@starter.dev</div>
+              </div>
+              <Icon name="chevron_right" size={18} color="var(--fg4)" />
+            </Card>
+
+            <GroupLabel>Preferences</GroupLabel>
+            <Card padding={0} style={{ marginBottom: 20 }}>
+              <ListRow icon="globe" title="Language" subtitle="English"
+                       right={<Icon name="chevron_right" size={16} color="var(--fg4)" />} />
+              <ListRow icon="settings" title="Units" subtitle={units}
+                       right={<SegmentedControl options={['Metric', 'Imperial']} value={units} onChange={setUnits} />} />
+              <ListRow icon="moon" title="Dark mode" subtitle={darkM ? 'On' : 'System'}
+                       right={<Toggle checked={darkM} onChange={setDarkM} />} />
+              <ListRow icon="bell" title="Notifications" subtitle="Push, email, digest"
+                       right={<Toggle checked={notif} onChange={setNotif} />} />
+              <ListRow icon="tag" title="Region" subtitle="United States"
+                       right={<Icon name="chevron_right" size={16} color="var(--fg4)" />} />
+            </Card>
+
+            <GroupLabel>Privacy &amp; Security</GroupLabel>
+            <Card padding={0} style={{ marginBottom: 20 }}>
+              <ListRow icon="shield" title="Privacy policy"
+                       right={<Icon name="arrow_up_right" size={16} color="var(--fg4)" />} />
+              <ListRow icon="lock" title="Security" subtitle="Passcode, biometrics"
+                       right={<Icon name="chevron_right" size={16} color="var(--fg4)" />} />
+              <ListRow icon="eye" title="Data &amp; permissions"
+                       right={<Icon name="chevron_right" size={16} color="var(--fg4)" />} />
+            </Card>
+
+            <GroupLabel>Support</GroupLabel>
+            <Card padding={0} style={{ marginBottom: 20 }}>
+              <ListRow icon="help" title="Help center"
+                       right={<Icon name="chevron_right" size={16} color="var(--fg4)" />} />
+              <ListRow icon="info" title="About" subtitle="v2.4.0"
+                       right={<Icon name="chevron_right" size={16} color="var(--fg4)" />} />
+            </Card>
+
+            <Card padding={0} style={{ marginBottom: 20 }}>
+              <ListRow icon="logout" title="Log out" danger right={<span />} />
+            </Card>
+
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--fg4)' }}>Starter Kit · v2.4.0</div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 4 — ONBOARDING
+    ═══════════════════════════════════════════════════════════ */
+    function SocialButton({ name, bg, fg, border: hasBorder }) {
+      const logo = name === 'Apple'
+        ? <svg width="16" height="18" viewBox="0 0 16 18" fill={fg}><path d="M12.5 9.5c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.4s1.6-.8 3-.8 1.8.8 3 .8 2-1.1 2.8-2.3c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.9zM10.3 2.5c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg>
+        : name === 'Google'
+        ? <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" fill="#EA4335"/></svg>
+        : <svg width="14" height="14" viewBox="0 0 24 24" fill={fg}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+      return (
+        <button style={{ height: 'var(--button-height-lg)', borderRadius: T.r.sm, background: bg, color: fg, width: '100%',
+                         border: hasBorder ? '1px solid var(--border)' : 'none',
+                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                         fontFamily: T.ff.base, fontWeight: T.fw.bold, fontSize: 15, cursor: 'pointer' }}>
+          {logo} Continue with {name}
+        </button>
+      );
+    }
+
+    function OnboardingFlow() {
+      const [step, setStep] = useState(0);
+      const [cuisines, setCuisines] = useState([]);
+      const [allergies, setAllergies] = useState([]);
+      const [email, setEmail] = useState('');
+      const cuisineOpts = [
+        { id: 'italian',  name: 'Italian',  color: 'var(--color-warning-light)' },
+        { id: 'japanese', name: 'Japanese', color: 'var(--color-error-light)' },
+        { id: 'mexican',  name: 'Mexican',  color: 'var(--color-warning-medium)' },
+        { id: 'indian',   name: 'Indian',   color: 'var(--color-error-medium)' },
+        { id: 'thai',     name: 'Thai',     color: 'var(--color-primary-medium)' },
+        { id: 'french',   name: 'French',   color: 'var(--color-highlight-light)' },
+      ];
+      const allergyOpts = ['Gluten', 'Dairy', 'Nuts', 'Eggs', 'Shellfish', 'Soy'];
+      const toggle = (list, setList, id) => setList(list.includes(id) ? list.filter(x => x !== id) : [...list, id]);
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)', paddingTop: 64, boxSizing: 'border-box' }}>
+          <div style={{ padding: '0 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {step > 0
+              ? <div onClick={() => setStep(step - 1)} style={{ cursor: 'pointer' }}><Icon name="arrow_left" size={22} color="var(--fg2)" /></div>
+              : <div style={{ width: 22 }} />}
+            <div style={{ fontSize: 12, fontWeight: T.fw.bold, color: 'var(--fg3)' }}>{step + 1} of 4</div>
+            {step < 3
+              ? <div onClick={() => setStep(3)} style={{ fontSize: 13, fontWeight: T.fw.bold, color: 'var(--fg3)', cursor: 'pointer' }}>Skip</div>
+              : <div style={{ width: 30 }} />}
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', padding: '0 24px' }}>
+            {step === 0 && (
+              <div>
+                <div style={{ width: '100%', height: 200, borderRadius: T.r.lg, background: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
+                  <div style={{ width: 76, height: 76, borderRadius: T.r.lg, background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="utensils" size={40} color="var(--color-fg-on-primary)" stroke={1.5} />
+                  </div>
+                </div>
+                <div style={{ fontFamily: T.ff.editorial, fontSize: T.fs.lg, fontWeight: T.fw.medium, lineHeight: 1.1, color: 'var(--fg1)', marginBottom: 10 }}>Welcome to Mise.</div>
+                <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--fg3)' }}>Discover recipes matched to what you love — and skip the ones you don't. Let's tune your taste in under a minute.</div>
+              </div>
+            )}
+            {step === 1 && (
+              <div>
+                <div style={{ fontFamily: T.ff.editorial, fontSize: 28, fontWeight: T.fw.medium, lineHeight: 1.15, color: 'var(--fg1)', marginBottom: 8 }}>Pick your favorite cuisines</div>
+                <div style={{ fontSize: T.fs.xxs, color: 'var(--fg3)', marginBottom: 20 }}>Choose as many as you'd like.</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {cuisineOpts.map(c => {
+                    const on = cuisines.includes(c.id);
+                    return (
+                      <div key={c.id} onClick={() => toggle(cuisines, setCuisines, c.id)} style={{
+                        aspectRatio: '1 / 1', borderRadius: T.r.md,
+                        border: on ? '2px solid var(--color-primary-pure)' : '2px solid transparent',
+                        background: 'var(--bg)',
+                        boxShadow: on ? '0 0 0 3px rgba(25,179,159,0.24)' : T.shadow.l1,
+                        padding: 12, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                        cursor: 'pointer', transition: `all ${T.dur.fast} ${T.ease}`,
+                      }}>
+                        <div style={{ width: 52, height: 52, borderRadius: T.r.sm, background: c.color }} />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ fontWeight: T.fw.bold, fontSize: 15, color: 'var(--fg1)' }}>{c.name}</div>
+                          {on && <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--color-primary-pure)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="check" size={14} stroke={2.5} color="var(--color-fg-on-primary)" /></div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {step === 2 && (
+              <div>
+                <div style={{ fontFamily: T.ff.editorial, fontSize: 28, fontWeight: T.fw.medium, lineHeight: 1.15, color: 'var(--fg1)', marginBottom: 8 }}>Any allergies?</div>
+                <div style={{ fontSize: T.fs.xxs, color: 'var(--fg3)', marginBottom: 20 }}>We'll hide recipes with these ingredients.</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {allergyOpts.map(a => {
+                    const on = allergies.includes(a);
+                    return (
+                      <div key={a} onClick={() => toggle(allergies, setAllergies, a)} style={{
+                        display: 'flex', alignItems: 'center', gap: 12, height: 56, padding: '0 16px',
+                        border: on ? '2px solid var(--color-primary-pure)' : '1px solid var(--border)',
+                        background: on ? 'var(--color-primary-light)' : 'var(--bg)',
+                        borderRadius: T.r.md, cursor: 'pointer', transition: `all ${T.dur.fast} ${T.ease}`,
+                      }}>
+                        <Checkbox checked={on} onChange={() => toggle(allergies, setAllergies, a)} />
+                        <div style={{ flex: 1, fontWeight: T.fw.medium, fontSize: 15, color: 'var(--fg1)' }}>{a}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {step === 3 && (
+              <div>
+                <div style={{ fontFamily: T.ff.editorial, fontSize: T.fs.lg, fontWeight: T.fw.medium, lineHeight: 1.1, color: 'var(--fg1)', marginBottom: 8 }}>Save your tastes</div>
+                <div style={{ fontSize: T.fs.xxs, color: 'var(--fg3)', marginBottom: 24 }}>Create an account to sync across devices.</div>
+                <div style={{ marginBottom: 16 }}>
+                  <TextField label="Email" value={email} onChange={setEmail} placeholder="you@email.com" iconLeft="mail" />
+                </div>
+                <Button style={{ width: '100%', justifyContent: 'center' }}>Continue with email</Button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '20px 0' }}>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                  <div style={{ fontSize: 11, fontWeight: T.fw.bold, color: 'var(--fg4)', letterSpacing: 'var(--letter-spacing-md)' }}>OR</div>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <SocialButton name="Apple"  bg="var(--color-near-black)" fg="var(--color-fg-on-primary)" />
+                  <SocialButton name="Google" bg="var(--bg)" fg="var(--fg2)" border />
+                  <SocialButton name="X"      bg="var(--bg)" fg="var(--fg2)" border />
+                </div>
+                <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--fg4)', padding: '16px 0 4px' }}>By continuing you agree to our <span style={{ color: 'var(--color-primary-pure)', fontWeight: T.fw.medium }}>Terms</span> and <span style={{ color: 'var(--color-primary-pure)', fontWeight: T.fw.medium }}>Privacy Policy</span>.</div>
+              </div>
+            )}
+          </div>
+          {step < 3 && (
+            <div style={{ padding: '12px 24px 34px', background: 'var(--bg)', borderTop: step === 0 ? 'none' : '1px solid var(--border-subtle)' }}>
+              <div style={{ marginBottom: 20 }}>
+                <DotsPager count={4} current={step} />
+              </div>
+              <Button onClick={() => setStep(step + 1)} iconRight="arrow_right" style={{ width: '100%', justifyContent: 'center' }}>
+                {step === 0 ? 'Get started' : 'Continue'}
+              </Button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 5 — GROUP CHAT
+    ═══════════════════════════════════════════════════════════ */
+    function GroupChatScreen() {
+      const messages = [
+        { who: 'Maya',   color: 'var(--color-error-medium)',     time: '2:14 PM', text: "Guys. I followed the lasagna recipe exactly and it's a soup. A LASAGNA SOUP.", mine: false },
+        { who: 'Jordan', color: 'var(--color-highlight-medium)', time: '2:15 PM', text: 'Did you drain the ricotta?', mine: false },
+        { who: 'me',     text: 'Oh no… Pics?', mine: true, time: '2:15 PM' },
+        { who: 'Maya',   color: 'var(--color-error-medium)',     time: '2:16 PM', image: 'var(--color-error-light)', mine: false },
+        { who: 'Jordan', color: 'var(--color-highlight-medium)', time: '2:17 PM', text: 'That is not lasagna. That is a crime scene.', mine: false },
+        { who: 'Priya',  color: 'var(--color-success-medium)',   time: '2:18 PM', text: 'How much bechamel did the recipe say?', mine: false },
+        { who: 'Maya',   color: 'var(--color-error-medium)',     time: '2:18 PM', text: 'Three cups…', mine: false },
+        { who: 'Priya',  color: 'var(--color-success-medium)',   time: '2:19 PM', text: "THREE? Should have been one and a half, max. It's a typo I bet.", mine: false },
+        { who: 'me',     text: 'Drain the soup, add more noodles, bake again. Been there.', mine: true, time: '2:20 PM' },
+        { who: 'Maya',   color: 'var(--color-error-medium)',     time: '2:21 PM', text: 'You are all saints. Reporting back in 40.', mine: false },
+      ];
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-subtle)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <div style={{ padding: '8px 16px 12px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg)' }}>
+            <Icon name="arrow_left" size={22} color="var(--fg2)" />
+            <div style={{ display: 'flex', marginLeft: 2 }}>
+              {[['M','var(--color-error-medium)'],['J','var(--color-highlight-medium)'],['P','var(--color-success-medium)']].map(([l, c], i) => (
+                <div key={i} style={{ width: 30, height: 30, borderRadius: '50%', background: c, color: 'var(--color-fg-on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: T.fw.bold, fontSize: 12, marginLeft: i ? -8 : 0, border: '2px solid var(--bg)' }}>{l}</div>
+              ))}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: T.fw.bold, fontSize: 15, color: 'var(--fg1)' }}>Sunday Cookers</div>
+              <div style={{ fontSize: 11, color: 'var(--color-success-medium)' }}>● 3 online</div>
+            </div>
+            <Icon name="phone" size={20} color="var(--color-primary-pure)" />
+            <Icon name="more" size={22} color="var(--fg3)" />
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--fg4)', margin: '4px 0 10px' }}>Today</div>
+            {messages.map((m, i) => {
+              const prev = messages[i - 1];
+              const showAvatar = !m.mine && (!prev || prev.who !== m.who);
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: m.mine ? 'flex-end' : 'flex-start', gap: 8, marginTop: showAvatar ? 8 : 0 }}>
+                  {!m.mine && (
+                    <div style={{ width: 30, flexShrink: 0 }}>
+                      {showAvatar && <div style={{ width: 30, height: 30, borderRadius: '50%', background: m.color, color: 'var(--color-fg-on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: T.fw.bold, fontSize: 12 }}>{m.who[0]}</div>}
+                    </div>
+                  )}
+                  <div style={{ maxWidth: '72%' }}>
+                    {showAvatar && !m.mine && <div style={{ fontSize: 11, fontWeight: T.fw.medium, color: 'var(--fg3)', marginBottom: 3, paddingLeft: 10 }}>{m.who}</div>}
+                    {m.image ? (
+                      <div style={{ width: 180, height: 130, borderRadius: T.r.md, background: m.image, borderTopLeftRadius: T.r.xs }} />
+                    ) : (
+                      <div style={{
+                        padding: '9px 13px',
+                        background: m.mine ? 'var(--color-primary-pure)' : 'var(--bg)',
+                        color: m.mine ? 'var(--color-fg-on-primary)' : 'var(--fg1)',
+                        borderRadius: T.r.md,
+                        borderTopRightRadius: m.mine ? T.r.xs : T.r.md,
+                        borderTopLeftRadius: !m.mine && showAvatar ? T.r.xs : T.r.md,
+                        border: m.mine ? 'none' : '1px solid var(--border-subtle)',
+                        fontSize: T.fs.xxs, lineHeight: 1.4,
+                      }}>{m.text}</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--color-highlight-medium)', color: 'var(--color-fg-on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: T.fw.bold, fontSize: 12 }}>J</div>
+              <div style={{ padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: T.r.md, borderTopLeftRadius: T.r.xs, display: 'flex', gap: 4, alignItems: 'center' }}>
+                {[0,1,2].map(i => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fg4)', opacity: 0.5 }} />)}
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: '10px 14px 28px', background: 'var(--bg)', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary-pure)' }}>
+              <Icon name="plus" size={18} />
+            </div>
+            <div style={{ flex: 1, height: 40, padding: '0 14px', background: 'var(--color-neutral-high-light)', borderRadius: T.r.full, display: 'flex', alignItems: 'center', color: 'var(--fg4)', fontSize: T.fs.xxs }}>Message…</div>
+            <Icon name="mic" size={22} color="var(--color-primary-pure)" />
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 6 — EMAIL
+    ═══════════════════════════════════════════════════════════ */
+    function EmailScreen() {
+      const emails = [
+        { from: 'Priya Shah',   subject: 'Recipe book v2 — cover review',   preview: 'Hey! I dropped the new cover options in the shared folder.',            time: '9:41 AM',   unread: true,  starred: true, color: 'var(--color-success-medium)',   label: 'Work' },
+        { from: 'Gmail Team',   subject: 'Your weekly digest is ready',     preview: '3 new recipes you might love, plus highlights from your subscriptions.', time: '8:12 AM',   unread: true,                 color: 'var(--color-error-medium)' },
+        { from: 'Stripe',       subject: 'Receipt for your subscription',   preview: 'Thanks for your purchase. Your invoice for the Premium plan is attached.', time: '7:03 AM', unread: true,                 color: '#635BFF' },
+        { from: 'Maya Chen',    subject: 'Re: Sunday dinner plan',          preview: 'I can bring the wine and dessert. Do we need anything else?',            time: 'Yesterday', unread: false, starred: true, color: 'var(--color-error-medium)',     label: 'Personal' },
+        { from: 'LinkedIn',     subject: 'Jordan and 4 others viewed your profile', preview: "See who's been looking at your profile this week.",              time: 'Yesterday', unread: false,                color: 'var(--color-highlight-medium)' },
+        { from: 'Notion',       subject: 'Weekly workspace summary',        preview: "You made 14 edits this week. Here's what happened in your workspace.",  time: 'Mon',       unread: false,                color: 'var(--color-neutral-low-dark)' },
+        { from: 'Airbnb',       subject: 'Your trip to Lisbon is coming up', preview: 'Check-in is in 9 days. Here are some tips to make your stay great.',    time: 'Sun',       unread: false,                color: '#FF385C' },
+      ];
+      const unreadCount = emails.filter(e => e.unread).length;
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <div style={{ padding: '8px 16px 12px' }}>
+            <SearchBar leading="more" placeholder="Search mail" trailing={<Avatar initials="AL" size={30} />} />
+          </div>
+          <div style={{ padding: '4px 16px 10px' }}>
+            <Badge tone="primary"><Icon name="inbox" size={14} color="var(--color-primary-pure)" /> Primary · {unreadCount} new</Badge>
+          </div>
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            {emails.map((e, i) => (
+              <div key={i} style={{ display: 'flex', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', background: e.unread ? 'var(--bg)' : 'var(--bg-subtle)' }}>
+                <Avatar initials={e.from.split(' ').map(s => s[0]).join('').slice(0, 2)} size={40} color={e.color} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 }}>
+                    <div style={{ fontWeight: e.unread ? T.fw.bold : T.fw.medium, fontSize: T.fs.xxs, color: 'var(--fg1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.from}</div>
+                    <div style={{ fontSize: 11, fontWeight: e.unread ? T.fw.bold : T.fw.regular, color: e.unread ? 'var(--color-primary-pure)' : 'var(--fg4)', flexShrink: 0, marginLeft: 8 }}>{e.time}</div>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: e.unread ? T.fw.medium : T.fw.regular, color: 'var(--fg1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 2 }}>{e.subject}</div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ flex: 1, fontSize: 12, color: 'var(--fg3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.preview}</div>
+                    {e.label && <span style={{ fontSize: 10, fontWeight: T.fw.bold, padding: '2px 8px', background: 'var(--color-neutral-high-light)', color: 'var(--fg3)', borderRadius: T.r.xs }}>{e.label}</span>}
+                    <Icon name="star" size={14} color={e.starred ? 'var(--color-warning-medium)' : 'var(--fg4)'} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <FAB icon="plus">Compose</FAB>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 7 — CALENDAR
+    ═══════════════════════════════════════════════════════════ */
+    function CalendarScreen() {
+      const [selected, setSelected] = useState(17);
+      const firstWeekday = 3;
+      const daysInMonth = 30;
+      const cells = [];
+      for (let i = 0; i < firstWeekday; i++) cells.push(null);
+      for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+      while (cells.length % 7 !== 0) cells.push(null);
+      const daysWithEvents = new Set([8, 14, 17, 22, 28]);
+      const today = 23;
+      const events = [
+        { time: '08:00', end: '08:30', title: 'Morning run',         loc: 'Greenway loop',       color: 'var(--color-success-medium)' },
+        { time: '10:00', end: '11:00', title: 'Design sync',         loc: 'Zoom · w/ Priya',     color: 'var(--color-primary-pure)' },
+        { time: '12:30', end: '13:15', title: 'Lunch with Jordan',   loc: 'Hakaba, SoMa',        color: 'var(--color-warning-medium)' },
+        { time: '14:00', end: '15:30', title: 'Recipe photography',  loc: 'Studio B',            color: 'var(--color-highlight-medium)' },
+        { time: '18:30', end: '20:00', title: 'Sourdough class',     loc: 'Community Center',    color: 'var(--color-error-medium)' },
+      ];
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <AppHeaderLarge
+            title="April 2026"
+            subtitle={`Thursday, the ${selected}th`}
+            actions={<>
+              <IconButton variant="neutral" icon="search" />
+              <IconButton variant="primary-solid" icon="plus" size={18} />
+            </>}
+          />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '6px 12px 4px' }}>
+            {['S','M','T','W','T','F','S'].map((d, i) => (
+              <div key={i} style={{ textAlign: 'center', fontSize: 11, fontWeight: T.fw.bold, color: i === 0 || i === 6 ? 'var(--fg4)' : 'var(--fg3)', letterSpacing: 'var(--letter-spacing-md)' }}>{d}</div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '6px 12px 12px', rowGap: 4 }}>
+            {cells.map((d, i) => {
+              if (d === null) return <div key={i} />;
+              const sel = d === selected;
+              const isToday = d === today;
+              const hasEvt = daysWithEvents.has(d);
+              const dow = i % 7;
+              const weekend = dow === 0 || dow === 6;
+              return (
+                <div key={i} onClick={() => setSelected(d)} style={{ aspectRatio: '1 / 1.1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, cursor: 'pointer' }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: T.fs.xxs, fontWeight: isToday || sel ? T.fw.bold : T.fw.medium,
+                    background: sel ? 'var(--color-primary-pure)' : isToday ? 'var(--color-primary-light)' : 'transparent',
+                    color: sel ? 'var(--color-fg-on-primary)' : isToday ? 'var(--color-primary-pure)' : weekend ? 'var(--fg4)' : 'var(--fg1)',
+                    transition: `all ${T.dur.fast} ${T.ease}`,
+                  }}>{d}</div>
+                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: hasEvt && !sel ? 'var(--color-primary-pure)' : 'transparent' }} />
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ height: 8, background: 'var(--color-neutral-high-extra-light)' }} />
+          <div style={{ flex: 1, overflow: 'auto', padding: '16px 20px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: T.fw.bold, color: 'var(--fg1)' }}>{events.length} events today</div>
+              <div style={{ fontSize: 12, fontWeight: T.fw.medium, color: 'var(--color-primary-pure)' }}>View week</div>
+            </div>
+            <div style={{ position: 'relative', paddingLeft: 56 }}>
+              <div style={{ position: 'absolute', left: 50, top: 6, bottom: 6, width: 1, background: 'var(--border-subtle)' }} />
+              {events.map((e, i) => (
+                <div key={i} style={{ position: 'relative', marginBottom: 12 }}>
+                  <div style={{ position: 'absolute', left: -56, top: 4, fontSize: 11, fontWeight: T.fw.bold, color: 'var(--fg3)', width: 40, textAlign: 'right' }}>{e.time}</div>
+                  <div style={{ position: 'absolute', left: -10, top: 8, width: 9, height: 9, borderRadius: '50%', background: e.color, border: '2px solid var(--bg)', boxShadow: '0 0 0 1px var(--border)' }} />
+                  <div style={{ padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border-subtle)', borderRadius: T.r.sm }}>
+                    <div style={{ fontWeight: T.fw.bold, fontSize: T.fs.xxs, color: 'var(--fg1)', marginBottom: 3 }}>{e.title}</div>
+                    <div style={{ fontSize: 11, color: 'var(--fg3)' }}>{e.time}–{e.end} · {e.loc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN 8 — SUBSCRIPTION
+    ═══════════════════════════════════════════════════════════ */
+    function SubscriptionScreen() {
+      const [selected, setSelected] = useState('premium');
+      const plans = [
+        { id: 'starter', name: 'Starter', meals: 3,  price: 59,  per: 24.50, tag: null,           blurb: 'Three chef-designed meals. Just add a weeknight.' },
+        { id: 'premium', name: 'Premium', meals: 6,  price: 109, per: 21.80, tag: 'Most popular', blurb: 'Six meals, including seasonal picks. Swap anytime.' },
+        { id: 'family',  name: 'Family',  meals: 10, price: 169, per: 19.90, tag: 'Best value',   blurb: 'Ten meals for four people. Pause or skip weeks.' },
+      ];
+      const included = ['Fresh, pre-portioned ingredients', 'Carbon-neutral delivery', 'Cancel or pause anytime'];
+      const activePlan = plans.find(p => p.id === selected);
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-subtle)', paddingTop: 54, boxSizing: 'border-box' }}>
+          <AppHeaderCompact
+            leading={<Icon name="x" size={22} color="var(--fg2)" />}
+            title="Choose plan"
+          />
+
+          <div style={{ flex: 1, overflow: 'auto', padding: '8px 20px 24px' }}>
+            <div style={{ textAlign: 'center', padding: '16px 8px 24px' }}>
+              <div style={{ fontFamily: T.ff.editorial, fontSize: T.fs.lg, fontWeight: T.fw.medium, lineHeight: 1.1, color: 'var(--fg1)', marginBottom: 8 }}>A plan for your weeknights</div>
+              <div style={{ fontSize: T.fs.xxs, color: 'var(--fg3)' }}>Meal kits delivered every Sunday.</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+              {plans.map(p => {
+                const on = selected === p.id;
+                return (
+                  <div key={p.id} onClick={() => setSelected(p.id)} style={{
+                    position: 'relative', padding: 16, borderRadius: T.r.md, background: 'var(--bg)',
+                    border: on ? '2px solid var(--color-primary-pure)' : '1px solid var(--border)',
+                    boxShadow: on ? `0 0 0 3px rgba(25,179,159,0.18), var(--shadow-level-1)` : 'none',
+                    cursor: 'pointer', transition: `all ${T.dur.base} ${T.ease}`,
+                  }}>
+                    {p.tag && <div style={{ position: 'absolute', top: -10, right: 16, padding: '3px 10px', background: 'var(--color-primary-pure)', color: 'var(--color-fg-on-primary)', fontSize: 10, fontWeight: T.fw.bold, letterSpacing: 'var(--letter-spacing-sm)', borderRadius: T.r.full, textTransform: 'uppercase' }}>{p.tag}</div>}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: on ? '2px solid var(--color-primary-pure)' : '2px solid var(--color-neutral-low-extra-light)', background: on ? 'var(--color-primary-pure)' : 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+                        {on && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-fg-on-primary)' }} />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <div style={{ fontSize: 17, fontWeight: T.fw.bold, color: 'var(--fg1)' }}>{p.name}</div>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontFamily: T.ff.editorial, fontSize: T.fs.md, fontWeight: T.fw.bold, color: 'var(--fg1)' }}>${p.price}</span>
+                            <span style={{ fontSize: 12, color: 'var(--fg3)', marginLeft: 2 }}>/wk</span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--fg3)', marginBottom: 8 }}>{p.meals} meals per week · ${p.per.toFixed(2)} per serving</div>
+                        <div style={{ fontSize: 13, color: 'var(--fg2)', lineHeight: 1.4 }}>{p.blurb}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Card padding={16} style={{ marginBottom: 12 }}>
+              <GroupLabel>Every plan includes</GroupLabel>
+              {included.map(item => (
+                <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary-light)', color: 'var(--color-primary-pure)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="check" size={12} stroke={2.5} />
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--fg2)' }}>{item}</div>
+                </div>
+              ))}
+            </Card>
+          </div>
+          <div style={{ padding: '12px 20px 28px', background: 'var(--bg)', borderTop: '1px solid var(--border-subtle)' }}>
+            <Button style={{ width: '100%', justifyContent: 'center', height: 'var(--button-height-lg)', fontSize: 15 }} iconRight="arrow_right">
+              Subscribe · ${activePlan.price}/wk
+            </Button>
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--fg4)', marginTop: 10 }}>First delivery in 3 days · Cancel anytime</div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PANNABLE CANVAS APP
+    ═══════════════════════════════════════════════════════════ */
+    const SECTIONS = [
+      {
+        label: 'Content & Feeds',
+        phones: [
+          { name: 'News Feed',     Screen: NewsFeedScreen },
+          { name: 'Recipe Swipe',  Screen: RecipeSwipeScreen },
+        ],
+      },
+      {
+        label: 'User & Auth',
+        phones: [
+          { name: 'Settings',      Screen: SettingsScreen2 },
+          { name: 'Onboarding',    Screen: OnboardingFlow },
+        ],
+      },
+      {
+        label: 'Messaging',
+        phones: [
+          { name: 'Group Chat',    Screen: GroupChatScreen },
+          { name: 'Email',         Screen: EmailScreen },
+        ],
+      },
+      {
+        label: 'Time & Commerce',
+        phones: [
+          { name: 'Calendar',      Screen: CalendarScreen },
+          { name: 'Subscription',  Screen: SubscriptionScreen },
+        ],
+      },
+    ];
+
+    function App() {
+      const wrapRef = useRef(null);
+      const [pan, setPan] = useState({ x: 60, y: 60 });
+      const [zoom, setZoom] = useState(0.52);
+      const isDragging = useRef(false);
+      const lastPos = useRef({ x: 0, y: 0 });
+
+      const onMouseDown = useCallback((e) => {
+        if (e.button !== 0) return;
+        isDragging.current = true;
+        lastPos.current = { x: e.clientX, y: e.clientY };
+        wrapRef.current.classList.add('dragging');
+      }, []);
+
+      const onMouseMove = useCallback((e) => {
+        if (!isDragging.current) return;
+        const dx = e.clientX - lastPos.current.x;
+        const dy = e.clientY - lastPos.current.y;
+        lastPos.current = { x: e.clientX, y: e.clientY };
+        setPan(p => ({ x: p.x + dx, y: p.y + dy }));
+      }, []);
+
+      const onMouseUp = useCallback(() => {
+        isDragging.current = false;
+        wrapRef.current?.classList.remove('dragging');
+      }, []);
+
+      useEffect(() => {
+        window.addEventListener('mouseup', onMouseUp);
+        return () => window.removeEventListener('mouseup', onMouseUp);
+      }, [onMouseUp]);
+
+      useEffect(() => {
+        const el = wrapRef.current;
+        if (!el) return;
+        const onWheel = (e) => {
+          e.preventDefault();
+          setZoom(z => Math.min(2.0, Math.max(0.2, z - e.deltaY * 0.001)));
+        };
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel);
+      }, []);
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.code === 'Space') {
+            e.preventDefault();
+            setPan({ x: 60, y: 60 });
+            setZoom(0.52);
+          }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, []);
+
+      return (
+        <div className="app-layout">
+          <div className="topbar">
+            <a href="index.html" className="topbar-back">← Toolkit</a>
+            <div className="topbar-sep" />
+            <div className="topbar-title">Generic Screens</div>
+            <button className="topbar-reset" onClick={() => { setPan({ x: 60, y: 60 }); setZoom(0.52); }}>
+              Reset view
+            </button>
+            <div className="topbar-hint">Drag to pan · Scroll to zoom · Space to reset</div>
+          </div>
+          <div className="canvas-wrap" ref={wrapRef}
+               onMouseDown={onMouseDown}
+               onMouseMove={onMouseMove}>
+            <div className="canvas-inner"
+                 style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
+              <div className="canvas-content">
+                {SECTIONS.map(section => (
+                  <div key={section.label} className="section">
+                    <div className="section-label">{section.label}</div>
+                    <div className="section-phones">
+                      {section.phones.map(({ name, Screen }) => (
+                        <div key={name} className="phone-col">
+                          <IOSDevice>
+                            <Screen />
+                          </IOSDevice>
+                          <div className="phone-name">{name}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

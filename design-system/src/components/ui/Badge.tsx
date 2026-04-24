@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, fontFamilies, fontWeights, fontSizes, radius, spacing } from '../../tokens';
+import { colors, textStyles, fontWeights, letterSpacings, radius, spacing } from '../../tokens';
 
 export type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'primary';
 export type BadgeSize    = 'sm' | 'xs';
@@ -42,10 +42,11 @@ const styles = StyleSheet.create({
     paddingVertical:   2,
   },
   label: {
-    fontFamily:    fontFamilies.base,
-    fontWeight:    fontWeights.bold,
-    fontSize:      fontSizes.xxs,
-    letterSpacing: 0.1,
+    ...textStyles.labelSm,
+    letterSpacing: letterSpacings.md,
   },
-  labelXs: { fontSize: 11 },
+  labelXs: {
+    ...textStyles.micro,
+    fontWeight: fontWeights.bold,
+  },
 });

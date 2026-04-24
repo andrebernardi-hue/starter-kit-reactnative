@@ -3,6 +3,40 @@
    Keep in sync with the token files per CLAUDE.md rules.
    ============================================================ */
 
+/* ── Web font loading ────────────────────────────────────────
+   Match the token-case family names used by the RN tokens
+   (`DMSans`, `Newsreader`, `FiraCode`) so the HTML toolkit,
+   Storybook, and native apps all resolve the same fonts.
+   ------------------------------------------------------------ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fira+Code:wght@400;500&display=swap');
+
+@font-face {
+  font-family: 'DMSans';
+  src: local('DM Sans');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Newsreader';
+  src: local('Newsreader');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Newsreader';
+  src: local('Newsreader');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'FiraCode';
+  src: local('Fira Code');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
 
   /* ── Colors: Primary ──────────────────────────── */
@@ -80,10 +114,13 @@
   --color-cat-bakery-tint:  #F3E3F5;
   --color-cat-bakery-ink:   #6A2E8B;
 
-  /* ── Typography: Font Families ──────────────── */
-  --font-base:      'DM Sans', sans-serif;
-  --font-highlight: 'Newsreader', serif;
-  --font-mono:      'Fira Code', monospace;
+  /* ── Typography: Font Families ────────────────
+     Primary names mirror RN token values (DMSans/Newsreader/FiraCode).
+     Spaced Google-Fonts names are kept as fallbacks so either spelling resolves. */
+  --font-base:      'DMSans', 'DM Sans', sans-serif;
+  --font-editorial: 'Newsreader', serif;
+  --font-highlight: 'Newsreader', serif; /* @deprecated alias of --font-editorial */
+  --font-mono:      'FiraCode', 'Fira Code', monospace;
 
   /* ── Typography: Font Sizes ─────────────────── */
   --font-size-xxs:     14px;
@@ -160,5 +197,51 @@
   --shadow-level3: 0 16px 32px rgba(0,0,0,0.12);
   --shadow-level4: 0 16px 48px rgba(0,0,0,0.16);
   --shadow-glow:   0 10px 24px rgba(21,139,124,0.35);
+
+
+  /* ── Shadow aliases (hyphenated — design bundle convention) ─ */
+  --shadow-level-1: var(--shadow-level1);
+  --shadow-level-2: var(--shadow-level2);
+  --shadow-level-3: var(--shadow-level3);
+  --shadow-level-4: var(--shadow-level4);
+
+  /* ── Semantic short-form aliases ──────────────────────────── */
+  --bg:            var(--color-bg);
+  --bg-subtle:     var(--color-bg-subtle);
+  --bg-muted:      var(--color-bg-muted);
+  --fg1:           var(--color-fg1);
+  --fg2:           var(--color-fg2);
+  --fg3:           var(--color-fg3);
+  --fg4:           var(--color-fg4);
+  --fg-on-primary: var(--color-fg-on-primary);
+  --border:        var(--color-border);
+  --border-subtle: var(--color-border-subtle);
+  --border-strong: var(--color-border-strong);
+  --focus-ring:    var(--color-focus-ring);
+  --link:          var(--color-link);
+  --link-hover:    var(--color-link-hover);
+
+  /* ── Font family long-form aliases ────────────────────────── */
+  --font-family-base:      var(--font-base);
+  --font-family-editorial: var(--font-editorial);
+  --font-family-highlight: var(--font-highlight); /* @deprecated */
+  --font-family-mono:      var(--font-mono);
+
+  /* ── Color helper aliases (= error) ───────────────────────── */
+  --color-helper-light:  var(--color-error-light);
+  --color-helper-medium: var(--color-error-medium);
+  --color-helper-dark:   var(--color-error-dark);
+
+  /* ── Motion ────────────────────────────────────────────────── */
+  --ease-standard:  cubic-bezier(0.2, 0, 0, 1);
+  --duration-micro: 120ms;
+  --duration-fast:  180ms;
+  --duration-base:  240ms;
+
+  /* ── Opacity ───────────────────────────────────────────────── */
+  --opacity-intense: 0.64;
+  --opacity-medium:  0.32;
+  --opacity-light:   0.16;
+  --opacity-semi:    0.08;
 
 }
